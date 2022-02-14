@@ -25,7 +25,11 @@
 #include "imgui/ImGuiTextEditor.h"
 
 #include <mq/Plugin.h>
-#pragma comment(lib, "imgui")
+#if defined(_WIN64)
+#pragma comment(lib, "imgui-64.lib")
+#else
+#pragma comment(lib, "imgui.lib")
+#endif // defined(_WIN64)
 
 #include <mq/utils/Args.h>
 #include <fmt/format.h>
@@ -777,7 +781,7 @@ static void LuaPSCommand(const std::vector<std::string>& filters = {})
 				info.name.length() > 12 ? info.name.substr(0, 9) + "..." : info.name,
 				info.startTime,
 				info.endTime,
-				info.status);
+				static_cast<int>(info.status));
 			WriteChatStatus("%.*s", line.size(), line.data());
 		}
 	}
@@ -816,7 +820,7 @@ static void LuaInfoCommand(const std::optional<std::string>& script = std::nullo
 				info.startTime,
 				info.endTime,
 				join(info.returnValues, ", "),
-				info.status);
+				static_cast<int>(info.status));
 
 			WriteChatStatus("%.*s", line.size(), line.data());
 		}
@@ -837,7 +841,7 @@ static void LuaInfoCommand(const std::optional<std::string>& script = std::nullo
 				info.name.length() > 12 ? info.name.substr(0, 9) + "..." : info.name,
 				info.startTime,
 				info.endTime,
-				info.status);
+				static_cast<int>(info.status));
 			WriteChatStatus("%.*s", line.size(), line.data());
 		}
 	}
@@ -1514,6 +1518,7 @@ PLUGIN_API void OnUpdateImGui()
 							if (selected_pid == info.pid)
 								node_flags |= ImGuiTreeNodeFlags_Selected;
 
+#pragma warning(suppress : 4312)
 							ImGui::TreeNodeEx((void*)info.pid, node_flags, "%s: %d", info.name.c_str(), info.pid);
 
 							if (ImGui::IsItemClicked())
