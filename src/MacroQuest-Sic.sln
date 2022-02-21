@@ -118,9 +118,6 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2PluginManager", "..\plugins\MQ2PluginManager\MQ2PluginManager.vcxproj", "{020DD92D-2E7F-457D-B3A3-A724F44C55A4}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2PortalSetter", "..\plugins\MQ2PortalSetter\MQ2PortalSetter.vcxproj", "{7F618AAF-C427-402B-9F45-EA9024D7933B}"
-	ProjectSection(ProjectDependencies) = postProject
-		{2A0A06A4-E9C6-4229-82EE-BD2D4E0A7221} = {2A0A06A4-E9C6-4229-82EE-BD2D4E0A7221}
-	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2Posse", "..\plugins\MQ2Posse\MQ2Posse.vcxproj", "{147FFD01-1A0A-F502-BB24-3710A8F2F641}"
 EndProject
@@ -361,9 +358,6 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2Enchanter", "..\plugins\CWTN\MQ2Enchanter\MQ2Enchanter.vcxproj", "{81C885BA-FAA3-4992-8F18-51D0DE34F2CA}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2GroundSpawns", "..\plugins\CWTN\MQ2GroundSpawns\MQ2GroundSpawns.vcxproj", "{5B1E3E66-8D45-4558-AA38-FEA0B25338D3}"
-	ProjectSection(ProjectDependencies) = postProject
-		{4FAA37C1-3D7E-4048-8DD8-F80F1052735F} = {4FAA37C1-3D7E-4048-8DD8-F80F1052735F}
-	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2Mage", "..\plugins\CWTN\MQ2Mage\MQ2Mage.vcxproj", "{673FCF47-3A34-4200-B508-F47834556B21}"
 EndProject
