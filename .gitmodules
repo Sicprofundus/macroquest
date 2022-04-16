@@ -1,6 +1,6 @@
 [submodule "src/eqlib"]
 	path = src/eqlib
-    url = https://github.com/macroquest/eqlib.git
+	url = https://github.com/macroquest/eqlib.git
 [submodule "contrib/vcpkg"]
 	path = contrib/vcpkg
 	url = https://github.com/macroquest/vcpkg.git
@@ -158,9 +158,6 @@
 [submodule "plugins/MQ2Nav"]
 	path = plugins/MQ2Nav
 	url = https://github.com/brainiac/MQ2Nav.git
-[submodule "data/lua/IntegrationTests"]
-	path = src/plugins/lua/lua/IntegrationTests
-	url = https://github.com/macroquest/integration-tests.git
 
 [submodule "plugins/MQ2EasyFind"]
 	path = plugins/MQ2EasyFind
@@ -225,9 +222,15 @@
 [submodule "plugins/MQ2DamageMeter"]
 	path = plugins/MQ2DamageMeter
 	url = https://gitlab.com/redguides/plugins/mq2damagemeter.git
+[submodule "plugins/MQ2Camera"]
+	path = plugins/MQ2Camera
+	url = "https://github.com/brainiac/MQ2Camera.git"
 [submodule "plugins/MQ2Dan"]
 	path = plugins/MQ2Dan
-	url = https://github.com/dannuic/MQ2Dan
+	url = https://github.com/dannuic/MQ2Dan.git
 [submodule "plugins/CWTN"]
 	path = plugins/CWTN
 	url = https://github.com/jessebevil/CWTN
+[submodule "data/lua/IntegrationTests"]
+	path = src/plugins/lua/lua/IntegrationTests
+	url = https://github.com/macroquest/integration-tests.git
