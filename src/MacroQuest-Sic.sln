@@ -223,7 +223,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2Profiler", "..\plugins\M
 		{2A0A06A4-E9C6-4229-82EE-BD2D4E0A7221} = {2A0A06A4-E9C6-4229-82EE-BD2D4E0A7221}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MeshGenerator", "..\plugins\MQ2Nav\meshgen\MeshGenerator.vcxproj", "{0F4E974D-3E48-44F0-945E-90C97E1E254D}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2Nav_MeshGenerator", "..\plugins\MQ2Nav\meshgen\MeshGenerator.vcxproj", "{0F4E974D-3E48-44F0-945E-90C97E1E254D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MQ2Nav", "MQ2Nav", "{1C00A77D-99DC-4366-8569-E75827AAF729}"
 EndProject
@@ -386,6 +386,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2EsKay", "..\plugins\CWTN\MQ2EsKay\MQ2EsKay.vcxproj", "{3104024E-8068-4A7D-AF48-57082C0456B4}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2BuffMe", "..\plugins\CWTN\Unreleased\MQ2BuffMe\MQ2BuffMe.vcxproj", "{1226D110-2BDA-4600-85D6-37D4CC6226C4}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MacroQuest", "loader\MacroQuest.vcxproj", "{72EE75F4-BCFA-4152-BFC6-A3C2A2B2C9AC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1779,6 +1781,18 @@ Global
 		{1226D110-2BDA-4600-85D6-37D4CC6226C4}.Release|x64.Build.0 = Release|x64
 		{1226D110-2BDA-4600-85D6-37D4CC6226C4}.Release|x86.ActiveCfg = Release|Win32
 		{1226D110-2BDA-4600-85D6-37D4CC6226C4}.Release|x86.Build.0 = Release|Win32
+		{72EE75F4-BCFA-4152-BFC6-A3C2A2B2C9AC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{72EE75F4-BCFA-4152-BFC6-A3C2A2B2C9AC}.Debug|Win32.Build.0 = Debug|Win32
+		{72EE75F4-BCFA-4152-BFC6-A3C2A2B2C9AC}.Debug|x64.ActiveCfg = Debug|x64
+		{72EE75F4-BCFA-4152-BFC6-A3C2A2B2C9AC}.Debug|x64.Build.0 = Debug|x64
+		{72EE75F4-BCFA-4152-BFC6-A3C2A2B2C9AC}.Debug|x86.ActiveCfg = Debug|Win32
+		{72EE75F4-BCFA-4152-BFC6-A3C2A2B2C9AC}.Debug|x86.Build.0 = Debug|Win32
+		{72EE75F4-BCFA-4152-BFC6-A3C2A2B2C9AC}.Release|Win32.ActiveCfg = Release|Win32
+		{72EE75F4-BCFA-4152-BFC6-A3C2A2B2C9AC}.Release|Win32.Build.0 = Release|Win32
+		{72EE75F4-BCFA-4152-BFC6-A3C2A2B2C9AC}.Release|x64.ActiveCfg = Release|x64
+		{72EE75F4-BCFA-4152-BFC6-A3C2A2B2C9AC}.Release|x64.Build.0 = Release|x64
+		{72EE75F4-BCFA-4152-BFC6-A3C2A2B2C9AC}.Release|x86.ActiveCfg = Release|Win32
+		{72EE75F4-BCFA-4152-BFC6-A3C2A2B2C9AC}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
