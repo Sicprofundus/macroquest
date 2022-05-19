@@ -113,15 +113,51 @@ BEGIN
             MENUITEM "Logs",                        ID_FILE_OPENFOLDERLOGS
             MENUITEM "Crash Dumps",                 ID_FILE_OPENFOLDERCRASHDUMPS
         END
-        POPUP "&MQ Sites"
+        POPUP "&RedGuides"
         BEGIN
-            MENUITEM "GitHub",                      ID_MQSITES_GITHUB
-            MENUITEM "Issue Tracker",               ID_MQSITES_ISSUETRACKER
-            MENUITEM SEPARATOR
-            MENUITEM "&Website",                    ID_MENU_WEBSITE
-            MENUITEM "&Forums",                     ID_MENU_FORUMS
-            MENUITEM "&Wiki",                       ID_MQSITES_WIKI
+			POPUP "&RedGuides"
+			BEGIN
+				MENUITEM "RG Forums",               ID_MENU_RGFORUMS
+				MENUITEM "New User Setup",          ID_MENU_RGNEWUSER
+				MENUITEM "Discord",                 ID_MENU_RGDISCORD
+			END
+
+			POPUP "&KissAssist"
+			BEGIN
+				MENUITEM "Kiss Wiki",               ID_MENU_KISSWIKI
+				MENUITEM "Kiss Ini Library",        ID_MENU_KISSINILIBRARY
+				MENUITEM "Kiss Support",            ID_MENU_KISSSUPPORT
+			END
+
+			POPUP "&MuleAssist"
+			BEGIN
+				MENUITEM "MA Wiki",                 ID_MENU_MULEASSWIKI
+				MENUITEM "MA Ini Library",          ID_MENU_MULEASSINILIBRARY
+				MENUITEM "MAUI (User Interface)"    ID_MENU_MAUI
+				MENUITEM "MA Support",              ID_MENU_MULEASSSUPPORT
+			END
+
+			POPUP "&RG Mercs"
+			BEGIN
+				MENUITEM "RG Wiki",                 ID_MENU_RGMERCSWIKI
+				MENUITEM "RG Support",              ID_MENU_RGMERCSSUPPORT
+			END
+
+			POPUP "&CWTN Class Plugins"
+			BEGIN
+				MENUITEM "CWTN Info",               ID_MENU_CWTNINFO
+				MENUITEM "CWTN Forums",             ID_MENU_CWTNFORUMS
+			END
         END
+		POPUP "&MQ Sites"
+		BEGIN
+			MENUITEM "GitHub", ID_MQSITES_GITHUB
+			MENUITEM "Issue Tracker", ID_MQSITES_ISSUETRACKER
+			MENUITEM SEPARATOR
+			MENUITEM "&Website", ID_MENU_WEBSITE
+			MENUITEM "&Forums", ID_MENU_FORUMS
+			MENUITEM "&Wiki", ID_MQSITES_WIKI
+		END
         MENUITEM "&Change Log",                 ID_MENU_CHANGELOG
         MENUITEM "&INI File",                   ID_MENU_INI
         MENUITEM SEPARATOR
