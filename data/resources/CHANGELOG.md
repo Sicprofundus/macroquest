@@ -126,6 +126,8 @@ January 25, 2022:
 - Fix crash in ItemDisplay when viewing new merchant perk bag.
 
 January 19, 2022:
+January 19, 2022:
+January 19, 2022:
 - Updated for patch.
 - Add missing ToL entry to GetZoneExpansionName() (#444)
 - Fix Me.AmIGroupLeader not returning a proper bool.
