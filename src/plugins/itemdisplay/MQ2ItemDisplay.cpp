@@ -934,7 +934,7 @@ static void CreateSpellTextDetails(fmt::memory_buffer& out, EQ_Spell* pSpell)
 			}
 
 			if (pSpell->ResistAdj != 0)
-				fmt::format_to(buffer, "{1}(Resist Adj.: {0})", pSpell->ResistAdj, rep(3, "&nbsp;"));
+				fmt::format_to(buffer, "{1}(Resist Adj.: {0}", pSpell->ResistAdj, rep(3, "&nbsp;"));
 
 			fmt::format_to(buffer, "<br>");
 		}
