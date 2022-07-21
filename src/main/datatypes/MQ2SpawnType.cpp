@@ -623,13 +623,25 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 			Dest.Set(pSpawn->HideMode != 0);
 			break;
 		case InvisModes::Regular:
-			Dest.Set(pLocalPC->CalculateInvisLevel(eAll) != 0);
+			if (ci_equals(pSpawn->Name, pLocalPC->Name)) {
+				Dest.Set(pLocalPC->CalculateInvisLevel(eAll) != 0);
+			}
+			else
+				Dest.Set(pSpawn->HideMode == 1);
 			break;
 		case InvisModes::Undead:
-			Dest.Set(pLocalPC->CalculateInvisLevel(eUndead) != 0);
+			if (ci_equals(pSpawn->Name, pLocalPC->Name)) {
+				Dest.Set(pLocalPC->CalculateInvisLevel(eUndead) != 0);
+			}
+			else
+				Dest.Set(pSpawn->HideMode == 2);
 			break;
 		case InvisModes::Animal:
-			Dest.Set(pLocalPC->CalculateInvisLevel(eAnimal) != 0);
+			if (ci_equals(pSpawn->Name, pLocalPC->Name)) {
+				Dest.Set(pLocalPC->CalculateInvisLevel(eAnimal) != 0);
+			}
+			else
+				Dest.Set(pSpawn->HideMode == 3);
 			break;
 		case InvisModes::SoS:
 			if (PcProfile* pProfile = GetPcProfile())
