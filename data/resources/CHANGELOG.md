@@ -1,3 +1,9 @@
+Aug 19, 2022:
+- Add ${MacroQuest.BuildName} to get the name of the build target (Live/Test/Emu)
+
+Aug 17, 2022:
+- Fix autoskills not returning proper values
+
 Aug 17, 2022 (live):
 - Updated for patch 
 
