@@ -73,6 +73,27 @@
 #define ID_MENU_CHECKAPPCOMPAT          40060
 #define ID_UNLOADALLMQ                  40061
 
+// RG Custom
+#define ID_MENU_RGFORUMS                49420
+#define ID_MENU_RGNEWUSER				49421
+#define ID_MENU_RGDISCORD               49422
+
+#define ID_MENU_KISSWIKI                49423
+#define ID_MENU_KISSINILIBRARY          49424
+#define ID_MENU_KISSSUPPORT             49425
+
+#define ID_MENU_MULEASSWIKI             49426
+#define ID_MENU_MULEASSINILIBRARY       49427
+#define ID_MENU_MAUI                    49428
+#define ID_MENU_MULEASSSUPPORT          49429
+
+#define ID_MENU_RGMERCSWIKI             49430
+#define ID_MENU_RGMERCSSUPPORT          49431
+
+
+#define ID_MENU_CWTNINFO                49432
+#define ID_MENU_CWTNFORUMS              49433
+
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
