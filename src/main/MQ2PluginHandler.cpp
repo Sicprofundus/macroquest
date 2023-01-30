@@ -303,6 +303,7 @@ std::pair<wil::unique_hmodule, std::string> LoadPluginModule(std::string_view na
 	std::string fileName = FindPluginFile(name);
 	if (fileName.empty())
 	{
+		strcpy_s(szPluginLoadFailure, "Plugin not found");
 		return {};
 	}
 
@@ -414,8 +415,8 @@ int LoadMQ2Plugin(const char* pszFilename, bool)
 	auto [hModule, pluginPath] = LoadPluginModule(pluginName);
 	if (!hModule)
 	{
+		// szPluginLoadFailure is set in LoadPluginModule
 		DebugSpew("LoadMQ2Plugin(%s) failed: %s", pluginName.c_str(), szPluginLoadFailure);
-
 		return 0;
 	}
 
@@ -1090,6 +1091,14 @@ static void PluginsLoadPlugin(const char* Name)
 				plugin->LoadPlugin(Name);
 			}
 		});
+
+	ForEachModule([Name](const MQModule* mod)
+		{
+			if (mod->LoadPlugin)
+			{
+				mod->LoadPlugin(Name);
+			}
+		});
 }
 
 static void PluginsUnloadPlugin(const char* Name)
@@ -1102,6 +1111,14 @@ static void PluginsUnloadPlugin(const char* Name)
 			{
 				DebugSpew("%s->UnloadPlugin(%s)", plugin->szFilename, Name);
 				plugin->UnloadPlugin(Name);
+			}
+		});
+
+	ForEachModule([Name](const MQModule* mod)
+		{
+			if (mod->UnloadPlugin)
+			{
+				mod->UnloadPlugin(Name);
 			}
 		});
 }
