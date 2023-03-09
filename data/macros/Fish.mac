@@ -640,4 +640,7 @@ Sub Event_Leaving
     /endmacro
 	/return    
 >>>>>>> master
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
