@@ -79,6 +79,10 @@ namespace mq {
 void InitializeLoginFrontend();
 void ShutdownLoginFrontend();
 
+// From MQ2ParseAPI.cpp
+void InitializeParser();
+void ShutdownParser();
+
 // From MQ2PluginHandler.cpp
 void ShutdownInternalModules();
 
@@ -861,13 +865,10 @@ void ForceUnload()
 	WriteChatColor(UnloadedString, USERCOLOR_DEFAULT);
 	DebugSpewAlways("ForceUnload() called, this is not good %s", UnloadedString);
 
-	// dont do this here ShutdownMQ2Plugins() will do it and its called from MQ2Shutdown();
-	//UnloadMQ2Plugins();
-
 	MQ2Shutdown();
 
 	g_Loaded = false;
-	ScreenMode = 2;
+	ScreenMode = oldscreenmode;
 }
 
 // ***************************************************************************
@@ -927,9 +928,6 @@ getout:
 		SPDLOG_WARN("I am unloading in MQ2Start this will probably crash");
 		ForceUnload();
 	}
-
-	if (ScreenMode)
-		ScreenMode = 2;
 
 	UninstallUnhandledExceptionFilter();
 
