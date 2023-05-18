@@ -16,6 +16,8 @@
 
 #include "../common/Common.h"
 
+#include "mq/api/Spawns.h"
+
  // string trim includes:
 #include <algorithm>
 #include <cctype>
@@ -167,30 +169,6 @@ inline const char* GetTypeDesc(eSpawnType TypeID)
 	}
 }
 
-inline bool IsMarkedNPC(SPAWNINFO* pSpawn)
-{
-	if (pLocalPlayer && pSpawn)
-	{
-		for (uint32_t id : pLocalPlayer->RaidMarkNPC)
-		{
-			if (id == pSpawn->SpawnID)
-			{
-				return true;
-			}
-		}
-
-		for (uint32_t id : pLocalPlayer->GroupMarkNPC)
-		{
-			if (id == pSpawn->SpawnID)
-			{
-				return true;
-			}
-		}
-	}
-
-	return false;
-}
-
 inline int GetEnduranceRegen()
 {
 	return pLocalPC ? pLocalPC->GetEnduranceRegen(true, false) : 0;
@@ -271,7 +249,7 @@ inline int GetFocusRangeModifier(const EQ_Spell* pSpell, ItemPtr& pItemOut)
 
 inline bool HasSkill(int nSkill)
 {
-	return pLocalPC ? pLocalPC->HasSkill(nSkill) : 0;
+	return pLocalPC && pLocalPC->HasSkill(nSkill);
 }
 
 inline float GetDistance(float X1, float Y1)
