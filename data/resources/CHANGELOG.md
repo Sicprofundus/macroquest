@@ -1,3 +1,38 @@
+Jul 19, 2023:
+- Add FreeGrab to AdvLootType (#733)
+- Hotkey will now restore minimized window (#735)
+
+Jul 10, 2023:
+- test: updated for test patch
+
+Jul 8, 2023:
+- Fix PackageMan issue with loading submodules in a single line
+
+Jul 6, 2023:
+- Fix scoping issues in PackageMan causing lua errors (#731)
+
+Jun 29, 2023:
+- test: updated for test patch
+
+Jun 26, 2023:
+- Fix CTextureAnimation (#729). This should fix ImGui drawing of game icons
+- Fix MQMouseInfo, should fix crashes with /mouseto (#698).
+- Fix overlay blocking input while it is hidden (#699).
+- lua: Disallow the use of mq.delay while a module is being imported (#730)
+- Add spell.MinCasterLevel to report the minimum class level of a spell (#722).
+
+June 21, 2023:
+- live: Updated for live patch
+
+June 19, 2023:
+- test: Updated for test patch
+
+May 24, 2023:
+- live: Updated for live patch
+
+May 19, 2023:
+- live: Updated for live patch
+
 May 17, 2023:
 - test: Updated for test patch
 - live: Updated for live patch. This patch introduces the new UI system,
