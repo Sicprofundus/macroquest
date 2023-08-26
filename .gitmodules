@@ -305,3 +305,6 @@
 	path = plugins/MQ2ToolTip
 	url = https://gitlab.com/redguides/plugins/MQ2ToolTip.git
 	branch = master
+[submodule "plugins/lua/lua"]
+	path = plugins/lua/lua
+	url = https://github.com/macroquest/integration-tests
