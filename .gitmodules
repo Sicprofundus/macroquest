@@ -201,9 +201,6 @@
 	path = plugins/MQ2XPTracker
 	url = https://gitlab.com/redguides/plugins/MQ2XPTracker.git
 	branch = master
-[submodule "plugins/CWTN/Unreleased"]
-	path = plugins/CWTN/Unreleased
-	url = https://github.com/jessebevil/Unreleased.git
 [submodule "plugins/MQ2Nav"]
 	path = plugins/MQ2Nav
 	url = https://github.com/brainiac/MQ2Nav.git
@@ -298,13 +295,21 @@
 	path = plugins/MQ2Dan
 	url = https://github.com/dannuic/MQ2Dan.git
 	branch = master
-[submodule "plugins/CWTN"]
-	path = plugins/CWTN
-	url = https://github.com/jessebevil/CWTN
 [submodule "plugins/MQ2ToolTip"]
 	path = plugins/MQ2ToolTip
 	url = https://gitlab.com/redguides/plugins/MQ2ToolTip.git
 	branch = master
+[submodule "plugins/CWTN"]
+	path = plugins/CWTN
+	url = https://github.com/jessebevil/CWTN
+[submodule "plugins/CWTN/Unreleased"]
+	path = plugins/CWTN/Unreleased
+	url = https://github.com/jessebevil/Unreleased
+
+[submodule "plugins/lua/lua"]
+	path = plugins/lua/lua
+	url = https://github.com/macroquest/integration-tests
+
 [submodule "plugins/lua/lua"]
 	path = plugins/lua/lua
 	url = https://github.com/macroquest/integration-tests
