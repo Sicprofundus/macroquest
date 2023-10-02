@@ -305,11 +305,6 @@
 [submodule "plugins/CWTN/Unreleased"]
 	path = plugins/CWTN/Unreleased
 	url = https://github.com/jessebevil/Unreleased
-
-[submodule "plugins/lua/lua"]
-	path = plugins/lua/lua
-	url = https://github.com/macroquest/integration-tests
-
 [submodule "plugins/lua/lua"]
 	path = plugins/lua/lua
 	url = https://github.com/macroquest/integration-tests
