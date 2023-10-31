@@ -18,13 +18,33 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Login.cpp" />
+    <ClCompile Include="Login.pb.cc">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4267</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4267</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4267</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4267</DisableSpecificWarnings>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProtocolBuffer Include="Login.proto" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Login.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\routing\routing.vcxproj">
+      <Project>{6ce4f8d6-1709-47c5-9297-1619bbc4a71e}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{70752189-b826-4e5d-816b-61b9147881cb}</ProjectGuid>
-    <RootNamespace>pluginapi</RootNamespace>
+    <ProjectGuid>{b85c18a8-0d53-4e32-917e-f9bf30080b16}</ProjectGuid>
+    <RootNamespace>autologin</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>pluginapi</ProjectName>
+    <ProjectName>login</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -69,17 +89,6 @@
     <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), src\Common.props))\src\Common.props" Condition=" '$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), src\Common.props))' != '' " />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <ItemGroup>
-    <ClCompile Include="pluginapi.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\..\include\mq\plugin\pluginapi.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\routing\routing.vcxproj">
-      <Project>{6ce4f8d6-1709-47c5-9297-1619bbc4a71e}</Project>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
