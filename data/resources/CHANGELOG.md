@@ -1,3 +1,10 @@
+Nov 9, 2023:
+- Lua modules will no longer be loaded relative to the lua folder.
+- Developers should use PackageMan or (for their own internal use) the modules folder.
+
+Nov 8, 2023:
+- Fixed some issues with autologin
+
 Nov 7, 2023:
 - Added support for datatypes implemented in lua scripts. This includes support
   for lua tables in lua datatypes. See examples and definitions for details.
