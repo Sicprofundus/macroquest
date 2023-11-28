@@ -308,3 +308,6 @@
 [submodule "plugins/lua/lua"]
 	path = plugins/lua/lua
 	url = https://github.com/macroquest/integration-tests
+[submodule "plugins/MQCollectionManager"]
+	path = plugins/MQCollectionManager
+	url = https://github.com/relaxednature/MQCollectionManager
