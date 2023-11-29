@@ -50,7 +50,7 @@ static MQModule s_PostOfficeModule = {
 };
 MQModule* GetPostOfficeModule() { return &s_PostOfficeModule; }
 
-class MQ2PostOffice : public PostOffice
+class MQPostOffice : public PostOffice
 {
 private:
 
@@ -68,7 +68,7 @@ private:
 	class PipeEventsHandler : public NamedPipeEvents
 	{
 	public:
-		PipeEventsHandler(MQ2PostOffice* postOffice) : m_postOffice(postOffice) {}
+		PipeEventsHandler(MQPostOffice* postOffice) : m_postOffice(postOffice) {}
 
 		virtual void OnIncomingMessage(PipeMessagePtr&& message) override
 		{
@@ -215,16 +215,20 @@ private:
 			msg.processId = GetCurrentProcessId();
 			m_postOffice->m_pipeClient.SendMessage(MQMessageId::MSG_MAIN_PROCESS_LOADED, &msg, sizeof(msg));
 
+			// send a self-identification
 			pipeclient::SetGameStatePostOffice(0);
+
+			// and then ask for the list of all ID's
+			m_postOffice->m_pipeClient.SendMessage(MQMessageId::MSG_IDENTIFICATION, nullptr, 0);
 		}
 
 	private:
-		MQ2PostOffice* m_postOffice;
+		MQPostOffice* m_postOffice;
 	};
 
 public:
 
-	MQ2PostOffice()
+	MQPostOffice()
 		: m_pipeClient{ mq::MQ2_PIPE_SERVER_PATH }
 		, m_launcherProcessID(0)
 	{
@@ -271,7 +275,19 @@ public:
 	{
 		if (message->GetMessageId() == MQMessageId::MSG_ROUTE)
 		{
-			auto envelope = ProtoMessage::Parse<proto::routing::Envelope>(message);
+			auto& envelope = ProtoMessage::Parse<proto::routing::Envelope>(message);
+
+			// always enrich the return address if in game
+			if (pLocalPC)
+			{
+				envelope.mutable_return_address()->set_account(GetLoginName());
+				envelope.mutable_return_address()->set_server(GetServerShortName());
+				envelope.mutable_return_address()->set_character(pLocalPC->Name);
+
+				std::string data(envelope.SerializeAsString());
+				message = std::make_unique<PipeMessage>(*message->GetHeader(), &data[0], data.size());
+			}
+
 			if (envelope.has_address())
 			{
 				auto address = envelope.address();
@@ -332,7 +348,7 @@ public:
 	void ProcessPipeClient()
 	{
 		m_pipeClient.Process();
-		Process(10);
+		Process(1000); // make this large just to prevent overflows
 	}
 
 	void NotifyIsForegroundWindow(bool isForeground)
@@ -417,9 +433,6 @@ public:
 		m_pipeClient.SetHandler(std::make_shared<PipeEventsHandler>(this));
 		m_pipeClient.Start();
 		::atexit(StopPipeClient);
-
-		// once we set up the mailbox, get a list of all connected peers
-		m_pipeClient.SendMessage(MQMessageId::MSG_IDENTIFICATION, nullptr, 0);
 	}
 
 	void Shutdown()
@@ -441,13 +454,13 @@ private:
 
 	static void StopPipeClient()
 	{
-		static_cast<MQ2PostOffice&>(GetPostOffice()).m_pipeClient.Stop();
+		static_cast<MQPostOffice&>(GetPostOffice()).m_pipeClient.Stop();
 	}
 };
 
 PostOffice& postoffice::GetPostOffice()
 {
-	static MQ2PostOffice s_postOffice;
+	static MQPostOffice s_postOffice;
 	return s_postOffice;
 }
 
@@ -455,32 +468,32 @@ namespace pipeclient {
 
 void NotifyIsForegroundWindow(bool isForeground)
 {
-	static_cast<MQ2PostOffice&>(GetPostOffice()).NotifyIsForegroundWindow(isForeground);
+	static_cast<MQPostOffice&>(GetPostOffice()).NotifyIsForegroundWindow(isForeground);
 }
 
 void RequestActivateWindow(HWND hWnd, bool sendMessage)
 {
-	static_cast<MQ2PostOffice&>(GetPostOffice()).RequestActivateWindow(hWnd, sendMessage);
+	static_cast<MQPostOffice&>(GetPostOffice()).RequestActivateWindow(hWnd, sendMessage);
 }
 
 void InitializePostOffice()
 {
-	static_cast<MQ2PostOffice&>(GetPostOffice()).Initialize();
+	static_cast<MQPostOffice&>(GetPostOffice()).Initialize();
 }
 
 void ShutdownPostOffice()
 {
-	static_cast<MQ2PostOffice&>(GetPostOffice()).Shutdown();
+	static_cast<MQPostOffice&>(GetPostOffice()).Shutdown();
 }
 
 void PulsePostOffice()
 {
-	static_cast<MQ2PostOffice&>(GetPostOffice()).ProcessPipeClient();
+	static_cast<MQPostOffice&>(GetPostOffice()).ProcessPipeClient();
 }
 
 void SetGameStatePostOffice(DWORD GameState)
 {
-	static_cast<MQ2PostOffice&>(GetPostOffice()).SetGameStatePostOffice(GameState);
+	static_cast<MQPostOffice&>(GetPostOffice()).SetGameStatePostOffice(GameState);
 }
 
 } // namespace pipeclient
