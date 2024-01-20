@@ -1,3 +1,11 @@
+Jan 20, 2024:
+- Fix Mercenary.State reporting unknown when mercenary is active (#811)
+- Fix Heading.Name/Heading.ShortName potentially going out of bounds (#813)
+- Change Me.BoundLocation.Heading to return heading type instead of a 512 unit float
+
+Jan 19, 2024:
+- Fix mq.pickle not properly escaping backslashes and not properly serializing numbers. (#815, #771).
+
 Jan 18, 2024:
 - Fix issue where textures would not draw if they had not already been preloaded.
 - Fix FPS plot in benchmark window to use its own axis.
