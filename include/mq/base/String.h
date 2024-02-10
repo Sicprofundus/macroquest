@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -597,6 +597,30 @@ public:
 	template <typename StringType>
 	using multiset = std::multiset<StringType, comparer>;
 };
+
+/**
+ * @fn IsNumber
+ *
+ * @brief Checks if a string represents a valid number
+ *
+ * Takes a string view and checks if it can be successfully parsed into a
+ * double precision floating point number.  This is different from the
+ * GetXFromString functions in that the entire string must be a number.
+ *
+ * @param String The string to be evaluated
+ *
+ * @return bool True if the string represents a valid number, false otherwise
+ **/
+inline bool IsNumber(std::string_view String)
+{
+	if (String.empty())
+		return false;
+
+	double test_var;
+	const auto result = std::from_chars(String.data(), String.data() + String.size(), test_var, std::chars_format::fixed);
+
+	return result.ec != std::errc::invalid_argument && result.ptr[0] == '\0';
+}
 
 /**
  * @fn GetIntFromString
