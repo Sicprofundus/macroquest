@@ -2,12 +2,6 @@
 // Microsoft Visual C++ generated include file.
 // Used by MacroQuest.rc
 //
-#define IDR_MENU1                       102
-#define ID_MENU_WEBSITE                 103
-#define ID_MENU_INI                     104
-#define ID_MENU_CHANGELOG               105
-#define ID_MENU_EXIT                    106
-#define ID_MENU_FORUMS                  107
 #define IDI_ICON1                       108
 #define IDD_PROFILE_EDIT                109
 #define IDD_PROFILE_EXPORT              110

@@ -1,3 +1,37 @@
+Feb 21, 2024:
+- live: Updated for latest patch
+- Add EQ cursor emulation for ImGui windows. This can be toggled in overlay settings (on by default).
+  When this feature is enabled, the EQ cursor and its attachments will appear over imgui windows.
+
+Feb 18, 2024:
+- test: Updated for latest patch
+
+Feb 16, 2024:
+- Changes to AutoLogin:
+- added sorting for characters that persists to context menu
+- added filter to hide characters from context menu
+- added ordering to profiles for login order and display
+- added sorting and searching to accounts
+- added some tooltips 
+
+Feb 14, 2024:
+- test: Fix Me.Platinum etc always returning 0.
+
+Feb 13, 2024:
+- test: Updated for latest patch
+- Completely revamped the autologin interface and storage
+- MQ's context menu is now driven by imgui
+- Added an extendable window gui to MQ
+- login profiles and character management is now driven through the main gui
+- removed sessions and replaced station names with single-entry profiles
+- passing the profile name to /login will load the first character in the profile
+- removed the autologin ini, replaced with sqlite db that can be copied across computers
+- a master pass has been added to provide encryption for account passwords _only_
+- the user will be prompted for a master password at first startup on a computer
+- the master password will be stored locally outside of the db (in the registry)
+- if the autologin plugin is running, logging in a new account will store the account name and associated characters in the database
+- manually editing the server list mapping is no longer needed (it is auto detected the first time you see that server in your list)
+
 Feb 3, 2024:
 - emu: Fix /timestamp showing seconds to the decimal
 
@@ -16,6 +50,9 @@ Jan 30, 2024:
 - Added mq.TLO.Me.AbilityTimerTotal which will return the total amount of time an ability takes to refresh. This is only available while the ability is in cooldown, otherwise it returns 0. Useful for converting mq.TLO.Me.AbilityTimer into a percentage. (#823)
 - mq.TLO.Me.AltCurrency now works with the singular or plural name of the currency
 - plugins: GetZoneExpansionName(0) would previously return "Original EQ" but now returns "EverQuest"
+
+Jan 27, 2024:
+- test: Updated for latest patch
 
 Jan 20, 2024:
 - Fix Mercenary.State reporting unknown when mercenary is active (#811)
@@ -40,6 +77,9 @@ Jan 15, 2024:
 - Fix Me.Origin (#807)
 - Fix several window properties that had been swapped (Click Through, Show Border, Escapable)
 
+Jan 14, 2024:
+- test: Updated for latest patch
+
 Jan 11, 2024:
 - Prospective fix for map crash (#798)
 - PackageMan now accepts the debug parameter (see docs)
@@ -58,6 +98,9 @@ Dec 18, 2023:
 - datatypes: add Type.InheritedType
 - datatypes: add Me.LaurionInnVoucher, Me.ShalowainsPrivateReserve
 
+Dec 13, 2023:
+- test: Updated for latest patch
+
 Dec 12, 2023:
 - live: Updated for latest patch
 - live: Updated for latest patch (again)
@@ -67,6 +110,7 @@ Dec 9, 2023:
 
 Dec 8, 2023:
 - live: Fix spawn manager crash
+- test: Fix spawn manager crash
 
 Dec 5, 2023:
 - live: Updated for latest expansion
