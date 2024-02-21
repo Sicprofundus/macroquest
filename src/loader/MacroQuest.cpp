@@ -825,6 +825,63 @@ void ShowAdvancedMenu()
 		RefreshInjections();
 }
 
+// Begin RegGuides Custom
+void ShowRedGuidesMenu()
+{
+	if (ImGui::BeginMenu("RedGuides"))
+	{
+		if (ImGui::MenuItem("RG Wiki"))
+			ShellExecuteA(nullptr, "open", "https://www.redguides.com/wiki/Main_Page", nullptr, nullptr, SW_SHOW);
+		if (ImGui::MenuItem("RG Forums"))
+			ShellExecuteA(nullptr, "open", "https://www.redguides.com/community", nullptr, nullptr, SW_SHOW);
+		if (ImGui::MenuItem("New User Setup"))
+			ShellExecuteA(nullptr, "open", "https://www.redguides.com/community/resources/multiboxing-everquest-the-red-guide-videos.1603/", nullptr, nullptr, SW_SHOW);
+		if (ImGui::MenuItem("Discord"))
+			ShellExecuteA(nullptr, "open", "https://discord.com/invite/x5C2sw53", nullptr, nullptr, SW_SHOW);
+		ImGui::EndMenu();
+	}
+	if (ImGui::BeginMenu("KissAssist"))
+	{
+		if (ImGui::MenuItem("Kiss Wiki"))
+			ShellExecuteA(nullptr, "open", "https://www.redguides.com/wiki/KissAssist", nullptr, nullptr, SW_SHOW);
+		if (ImGui::MenuItem("Kiss Ini Library"))
+			ShellExecuteA(nullptr, "open", "https://www.redguides.com/community/resources/categories/kissassist-ini-library.18/", nullptr, nullptr, SW_SHOW);
+		if (ImGui::MenuItem("Kiss Support"))
+			ShellExecuteA(nullptr, "open", "https://www.redguides.com/community/forums/kissassist-support.125/", nullptr, nullptr, SW_SHOW);
+		ImGui::EndMenu();
+	}
+	if (ImGui::BeginMenu("MuleAssist"))
+	{
+		if (ImGui::MenuItem("MA Wiki"))
+			ShellExecuteA(nullptr, "open", "https://www.redguides.com/wiki/MuleAssist", nullptr, nullptr, SW_SHOW);
+		if (ImGui::MenuItem("MA Ini Library"))
+			ShellExecuteA(nullptr, "open", "https://www.redguides.com/community/resources/categories/muleassist-ini-library.24/", nullptr, nullptr, SW_SHOW);
+		if (ImGui::MenuItem("MAUI (User Interface)"))
+			ShellExecuteA(nullptr, "open", "https://www.redguides.com/community/resources/maui-muleassist-ui.2207/", nullptr, nullptr, SW_SHOW);
+		if (ImGui::MenuItem("MA Support"))
+			ShellExecuteA(nullptr, "open", "https://www.redguides.com/community/forums/muleassist.160/", nullptr, nullptr, SW_SHOW);
+		ImGui::EndMenu();
+	}
+	if (ImGui::BeginMenu("RG Mercs"))
+	{
+		if (ImGui::MenuItem("RG Mercs Wiki"))
+			ShellExecuteA(nullptr, "open", "https://www.redguides.com/wiki/RGMercs", nullptr, nullptr, SW_SHOW);
+		if (ImGui::MenuItem("RG Mercs Support"))
+			ShellExecuteA(nullptr, "open", "https://www.redguides.com/community/forums/rgmercs-support.159/", nullptr, nullptr, SW_SHOW);
+		ImGui::EndMenu();
+	}
+	if (ImGui::BeginMenu("CWTN Class Plugins"))
+	{
+		if (ImGui::MenuItem("CWTN Info"))
+			ShellExecuteA(nullptr, "open", "https://www.redguides.com/community/threads/getting-started-with-cwtn-plugins-movement-ui-window-clickies-pulling-etc-check-here-first.76746/", nullptr, nullptr, SW_SHOW);
+		if (ImGui::MenuItem("CWTN Forums"))
+			ShellExecuteA(nullptr, "open", "https://www.redguides.com/community/forums/cwtn-plugins.163/", nullptr, nullptr, SW_SHOW);
+		ImGui::EndMenu();
+	}
+}
+// End RedGuides Custom
+
+
 void InitializeWindows()
 {
 	WNDCLASS wc;
@@ -856,6 +913,10 @@ void InitializeWindows()
 
 	LauncherImGui::AddMainPanel("MacroQuest Info", ShowMacroQuestInfo);
 	LauncherImGui::AddContextGroup("##MacroQuest", ShowMacroQuestMenu);
+
+	// Begin RegGuides Custom
+	LauncherImGui::AddContextGroup("RedGuides", ShowRedGuidesMenu);
+	// End RedGuides Custom
 }
 
 class MQ2ProcessMonitorEvents : public ProcessMonitorEvents
