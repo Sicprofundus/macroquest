@@ -617,58 +617,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT MSG, WPARAM wParam, LPARAM lParam)
 	case WM_WINDOWPOSCHANGING:
 		Shell_NotifyIcon(NIM_ADD, &NID); //Add the systray icon.
 		break;
-	// Start RG Custom
-	case ID_MENU_RGFORUMS:
-		ShellExecute(hWnd, "open", "https://www.redguides.com/community", nullptr, lpModulePath, SW_SHOW);
-		break;
-	case ID_MENU_RGNEWUSER:
-		ShellExecute(hWnd, "open", "https://www.redguides.com/community/resources/multiboxing-everquest-the-red-guide-videos.1603/", nullptr, lpModulePath, SW_SHOW);
-		break;
-	case ID_MENU_RGDISCORD:
-		ShellExecute(hWnd, "open", "https://discord.com/invite/x5C2sw53", nullptr, lpModulePath, SW_SHOW);
-		break;
-	// Start Kiss Custom
-	case ID_MENU_KISSWIKI:
-		ShellExecute(hWnd, "open", "https://www.redguides.com/wiki/KissAssist", nullptr, lpModulePath, SW_SHOW);
-		break;
-	case ID_MENU_KISSINILIBRARY:
-		ShellExecute(hWnd, "open", "https://www.redguides.com/community/resources/categories/kissassist-ini-library.18/", nullptr, lpModulePath, SW_SHOW);
-		break;
-	case ID_MENU_KISSSUPPORT:
-		ShellExecute(hWnd, "open", "https://www.redguides.com/community/forums/kissassist-support.125/", nullptr, lpModulePath, SW_SHOW);
-		break;
 
-	// Start Mule Custom
-	case ID_MENU_MULEASSWIKI:
-		ShellExecute(hWnd, "open", "https://www.redguides.com/wiki/MuleAssist", nullptr, lpModulePath, SW_SHOW);
-		break;
-	case ID_MENU_MULEASSINILIBRARY:
-		ShellExecute(hWnd, "open", "https://www.redguides.com/community/resources/categories/muleassist-ini-library.24/", nullptr, lpModulePath, SW_SHOW);
-		break;
-	case ID_MENU_MAUI:
-		ShellExecute(hWnd, "open", "https://www.redguides.com/community/resources/maui-muleassist-ui.2207/", nullptr, lpModulePath, SW_SHOW);
-		break;
-	case ID_MENU_MULEASSSUPPORT:
-		ShellExecute(hWnd, "open", "https://www.redguides.com/community/forums/muleassist.160/", nullptr, lpModulePath, SW_SHOW);
-		break;
-	// Start RG Mercs Custom
-	case ID_MENU_RGMERCSWIKI:
-		ShellExecute(hWnd, "open", "https://www.redguides.com/wiki/RGMercs", nullptr, lpModulePath, SW_SHOW);
-		break;
-	case ID_MENU_RGMERCSSUPPORT:
-		ShellExecute(hWnd, "open", "https://www.redguides.com/community/forums/rgmercs-support.159/", nullptr, lpModulePath, SW_SHOW);
-		break;
-
-	// Start CWTN Custom
-	case ID_MENU_CWTNINFO:
-		ShellExecute(hWnd, "open", "https://www.redguides.com/community/threads/getting-started-with-cwtn-plugins-movement-ui-window-clickies-pulling-etc-check-here-first.76746/", nullptr, lpModulePath, SW_SHOW);
-		break;
-	case ID_MENU_CWTNFORUMS:
-		ShellExecute(hWnd, "open", "https://www.redguides.com/community/forums/cwtn-plugins.163/", nullptr, lpModulePath, SW_SHOW);
-		break;
-
-	case ID_MENU_WEBSITE:
-		ShellExecute(hWnd, "open", "https://macroquest.org", nullptr, lpModulePath, SW_SHOW);
 	case WM_SIZE:
 		Shell_NotifyIcon(NIM_ADD, &NID); //Add the systray icon.
 		break;
@@ -827,43 +776,8 @@ void ShowMacroQuestMenu()
 			LauncherImGui::OpenMessageBox(nullptr, fmt::format("Could not find CHANGELOG.md: {}", pathChangeLog.string()), "View Changelog");
 		}
 	}
-
-	case ID_FILE_OPENFOLDERMQ:
-		ShellExecute(hWnd, "explore", internal_paths::MQRoot.c_str(), nullptr, lpModulePath, SW_SHOW);
-		break;
-	if (ImGui::MenuItem("INI File"))
-		ShellExecuteA(nullptr, "open", internal_paths::MQini.c_str(), nullptr, internal_paths::MQRoot.c_str(), SW_SHOW);
 }
 
-	case ID_FILE_OPENFOLDERCONFIG:
-		ShellExecute(hWnd, "explore", internal_paths::Config.c_str(), nullptr, lpModulePath, SW_SHOW);
-		break;
-
-	case ID_FILE_OPENFOLDERMACROS:
-		ShellExecute(hWnd, "explore", internal_paths::Macros.c_str(), nullptr, lpModulePath, SW_SHOW);
-		break;
-
-	case ID_FILE_OPENFOLDERRESOURCES:
-		ShellExecute(hWnd, "explore", internal_paths::Resources.c_str(), nullptr, lpModulePath, SW_SHOW);
-		break;
-
-	case ID_FILE_OPENFOLDERLOGS:
-		ShellExecute(hWnd, "explore", internal_paths::Logs.c_str(), nullptr, lpModulePath, SW_SHOW);
-		break;
-
-	case ID_FILE_OPENFOLDERCRASHDUMPS:
-		ShellExecute(hWnd, "explore", internal_paths::CrashDumps.c_str(), nullptr, lpModulePath, SW_SHOW);
-		break;
-
-	case ID_FILE_OPENFOLDERLUA:
-		ShellExecute(hWnd, "explore", internal_paths::Lua.c_str(), nullptr, lpModulePath, SW_SHOW);
-		break;
-
-	case ID_MENU_INI:
-		ShellExecute(hWnd, "open", internal_paths::MQini.c_str(), nullptr, lpModulePath, SW_SHOW);
-		break;
-
-	case ID_STARTEQBCS:
 void ShowEQBCMenu()
 {
 	if (ImGui::MenuItem("Start EQBC Server"))
