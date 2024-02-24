@@ -14,10 +14,9 @@
 
 #pragma once
 
-#include <filesystem>
-
 #include "Login.pb.h"
 
+#include <filesystem>
 #include <optional>
 
 #ifdef _DEBUG
@@ -57,6 +56,20 @@ struct ProfileRecord
 	void FormatTo(char* buffer, size_t length) const;
 
 	[[nodiscard]] std::string ToString() const;
+
+	static bool Compare(const ProfileRecord& a, const ProfileRecord& b)
+	{
+		if (a.sortOrder == 0 && b.sortOrder == 0)
+			return a.characterName.compare(b.characterName) < 0;
+
+		if (a.sortOrder == 0)
+			return false;
+
+		if (b.sortOrder == 0)
+			return true;
+
+		return a.sortOrder < b.sortOrder;
+	}
 };
 
 struct ProfileGroup
@@ -65,7 +78,7 @@ struct ProfileGroup
 	std::optional<std::string> eqPath;
 	std::vector<ProfileRecord> records;
 
-	unsigned int selected = 0;
+	unsigned int sortOrder = 0;
 };
 
 std::vector<ProfileGroup> LoadAutoLoginProfiles(const std::string& ini_file_name, std::string_view server_type);
@@ -290,7 +303,9 @@ Cache<std::function<T()>> CacheSetting(
 Results<std::string> ListProfileGroups();
 void CreateProfileGroup(const ProfileGroup& group);
 std::optional<unsigned int> ReadProfileGroup(ProfileGroup& group);
+std::optional<std::string> GetLatestProfileGroup();
 void UpdateProfileGroup(std::string_view name, const ProfileGroup& group);
+void TouchProfileGroup(std::string_view name);
 void DeleteProfileGroup(std::string_view name);
 
 Results<std::pair<std::string, std::string>> ListAccounts();
@@ -344,4 +359,5 @@ Results<std::string> ListProfileGroupMatches(std::string_view search);
 void WriteProfileGroups(const std::vector<ProfileGroup>& groups, std::string_view eq_path);
 bool InitDatabase(const std::string& path);
 void ShutdownDatabase();
+
 } // namespace login::db
