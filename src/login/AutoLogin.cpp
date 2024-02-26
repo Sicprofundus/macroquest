@@ -14,6 +14,7 @@
 
 #include "login/AutoLogin.h"
 #include "login/Login.h"
+#include "mq/base/Color.h"
 #include "mq/base/String.h"
 
 #include "imgui/imgui.h"
@@ -31,14 +32,55 @@ static std::unordered_map<std::string, LoginInstance> s_loadedInstances;
 std::vector<ImGuiTableColumnSortSpecs> CharacterInfo::s_sortSpecs;
 bool CharacterInfo::s_contextMenuDirty = false;
 
-std::function<void(const std::string&)> LoadAllStarredCallback;
-std::function<void(const ProfileRecord&)> LoadCharacterCallback;
+std::function<void(const std::string&, bool)> LoadAllStarredCallback;
+std::function<void(const ProfileRecord&, bool)> LoadCharacterCallback;
 std::function<void(uint32_t, const std::string&)> UnregisterGlobalHotkeyCallback;
 std::function<void(uint32_t, const std::string&)> RegisterGlobalHotkeyCallback;
 
 const std::unordered_map<std::string, LoginInstance>& GetLoadedInstances()
 {
 	return s_loadedInstances;
+}
+
+const LoginInstance* GetAccountInstance(std::string_view accountName, std::string_view serverType)
+{
+	for (const auto& [_, instance] : s_loadedInstances)
+	{
+		if (mq::ci_equals(instance.Account, accountName) && mq::ci_equals(instance.ServerType, serverType))
+			return &instance;
+
+	}
+
+	return nullptr;
+}
+
+static std::string GetEQGameProcessPath(uint32_t processId)
+{
+	wil::unique_process_handle hProcess{
+		OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, processId)
+	};
+
+	if (hProcess)
+	{
+		char szProcessName[MAX_PATH];
+		DWORD nameSize = MAX_PATH;
+
+		if (::QueryFullProcessImageNameA(hProcess.get(), 0, szProcessName, &nameSize))
+		{
+			std::string fileName = szProcessName;
+
+			// Extract the filename from the full path
+			size_t pos = fileName.find_last_of("\\/");
+			if (pos != std::string::npos)
+			{
+				fileName = fileName.substr(0, pos);
+			}
+
+			return fileName;
+		}
+	}
+
+	return {};
 }
 
 static bool IsEQGameProcessId(DWORD processId)
@@ -76,7 +118,7 @@ static bool IsEQGameProcessId(DWORD processId)
 
 #pragma region LoginInstance
 
-const LoginInstance* UpdateInstance(const uint32_t pid, const ProfileRecord& profile)
+const LoginInstance* UpdateInstance(const uint32_t pid, const ProfileRecord& profile, bool add /* = false */)
 {
 	auto login_it = s_loadedInstances.find(LoginInstance::Key(profile));
 	if (login_it == s_loadedInstances.end() && IsEQGameProcessId(pid))
@@ -87,12 +129,33 @@ const LoginInstance* UpdateInstance(const uint32_t pid, const ProfileRecord& pro
 			[pid](const std::pair<std::string, LoginInstance>& instance)
 			{ return instance.second.PID == pid; });
 
+		std::string newKey = LoginInstance::Key(profile);
+
 		if (login_it != s_loadedInstances.end())
 		{
-			// found an instance with the same PID, update the entry to match the new loaded message
-			// the assumption here is that this message will necessarily come from the instance that
-			// is actually loaded at that pid (like if someone relogged without MQ and then injected)
-			login_it->second.Update(pid, profile);
+			if (newKey == login_it->first)
+			{
+				// found an instance with the same PID, update the entry to match the new loaded message
+				// the assumption here is that this message will necessarily come from the instance that
+				// is actually loaded at that pid (like if someone relogged without MQ and then injected)
+				login_it->second.Update(pid, profile);
+				return &login_it->second;
+			}
+
+			// This profile has switched characters. We need to change to the new profile by removing
+			// and re-adding with the new key. Remove here, and we'll add below.
+			if (login_it->second.Hotkey && UnregisterGlobalHotkeyCallback)
+				UnregisterGlobalHotkeyCallback(login_it->second.PID, *login_it->second.Hotkey);
+
+			s_loadedInstances.erase(login_it);
+			add = true;
+		}
+
+		if (add)
+		{
+			auto [it, _] = s_loadedInstances.emplace(newKey, LoginInstance(pid, profile));
+			it->second.Update(pid, profile);
+			return &it->second;
 		}
 	}
 	else if (login_it != s_loadedInstances.end())
@@ -114,7 +177,11 @@ const LoginInstance* UpdateInstance(const uint32_t pid, const ProfileRecord& pro
 			if (login_it->second.Hotkey && UnregisterGlobalHotkeyCallback)
 				UnregisterGlobalHotkeyCallback(login_it->second.PID, *login_it->second.Hotkey);
 
-			login_it = s_loadedInstances.erase(login_it);
+			s_loadedInstances.erase(login_it);
+		}
+		else
+		{
+			login_it->second.Update(pid, profile);
 		}
 
 		// else do nothing because we are just acknowledging a loaded instance
@@ -134,11 +201,8 @@ void RemoveInstance(uint32_t pid)
 
 	if (login_it != s_loadedInstances.end())
 	{
-		if (login_it->second.Hotkey)
-		{
-			if (UnregisterGlobalHotkeyCallback)
-				UnregisterGlobalHotkeyCallback(pid, *login_it->second.Hotkey);
-		}
+		if (login_it->second.Hotkey && UnregisterGlobalHotkeyCallback)
+			UnregisterGlobalHotkeyCallback(pid, *login_it->second.Hotkey);
 
 		s_loadedInstances.erase(login_it);
 	}
@@ -147,8 +211,10 @@ void RemoveInstance(uint32_t pid)
 LoginInstance::LoginInstance(uint32_t pid, const ProfileRecord& profile)
 	: PID(pid)
 	, Server(profile.serverName)
+	, ServerType(profile.serverType)
 	, Character(profile.characterName)
-	, EQPath(*profile.eqPath)
+	, Account(profile.accountName)
+	, EQPath(profile.eqPath.has_value() ? *profile.eqPath : GetEQGameProcessPath(pid))
 	, ProfileGroup(profile.profileName)
 {
 	if (!profile.hotkey.empty()) Hotkey = profile.hotkey;
@@ -181,11 +247,15 @@ void LoginInstance::Update(uint32_t pid, const ProfileRecord& profile)
 		}
 	}
 
-	if (ProfileGroup != profile.profileName && !profile.profileName.empty())
+	// Update the profile name.
+	if (!profile.profileName.empty())
 	{
-		ProfileGroup = profile.profileName;
+		if (ProfileGroup != profile.profileName)
+		{
+			ProfileGroup = profile.profileName;
+		}
 	}
-	else if (ProfileGroup && profile.profileName.empty())
+	else if (ProfileGroup.has_value())
 	{
 		ProfileGroup.reset();
 	}
@@ -193,9 +263,13 @@ void LoginInstance::Update(uint32_t pid, const ProfileRecord& profile)
 
 const LoginInstance* StartInstance(ProfileRecord& profile)
 {
-	const auto login_it = s_loadedInstances.find(LoginInstance::Key(profile));
+	std::string instanceKey = LoginInstance::Key(profile);
+	const auto login_it = s_loadedInstances.find(instanceKey);
 	if (login_it != s_loadedInstances.end())
 	{
+		SPDLOG_WARN("Login instance for {} already exists as pid {}, not starting new instance",
+			instanceKey, login_it->second.PID);
+
 		login_it->second.Update(login_it->second.PID, profile);
 		return UpdateInstance(login_it->second.PID, profile);
 	}
@@ -701,6 +775,41 @@ void ProfileGroupInfo::Delete() const
 
 #pragma endregion
 
+void DrawStatusIcon(const ProfileRecord& profile)
+{
+	auto iter = s_loadedInstances.find(LoginInstance::Key(profile));
+	if (iter != s_loadedInstances.end())
+	{
+		const LoginInstance& instance = iter->second;
+
+		if (profile.profileName.empty()
+			|| instance.ProfileGroup == profile.profileName)
+		{
+			ImGui::PushStyleColor(ImGuiCol_Text, { 0.f, 1.f, 0.f, 1.f });
+			ImGui::TextUnformatted(ICON_MD_POWER_SETTINGS_NEW);
+			ImGui::PopStyleColor();
+		}
+		else
+		{
+			ImGui::PushStyleColor(ImGuiCol_Text, mq::MQColor(0, 148, 255).ToImU32());
+			ImGui::TextUnformatted(ICON_MD_SETTINGS_POWER);
+			ImGui::PopStyleColor();
+
+			ImGui::SetItemTooltip("This character is already logged in, but not with this profile.\n"
+				"Launching will instead apply this profile. (Hold SHIFT to force a new login)");
+		}
+	}
+	else if (const LoginInstance* accountInstance = GetAccountInstance(profile.accountName, profile.serverType))
+	{
+		ImGui::PushStyleColor(ImGuiCol_Text, { 1.0f, 1.0f, 0, 1.0f });
+		ImGui::TextUnformatted(ICON_MD_DO_NOT_DISTURB);
+		ImGui::PopStyleColor();
+
+		ImGui::SetItemTooltip("This account is logged in on another character: %s (%s)",
+			accountInstance->Character.c_str(), accountInstance->Server.c_str());
+	}
+}
+
 void ShowProfilesMenu(bool showLoadAll)
 {
 	fmt::memory_buffer buf;
@@ -733,7 +842,7 @@ void ShowProfilesMenu(bool showLoadAll)
 				{
 					if (ImGui::Selectable("Launch All Starred", false, ImGuiSelectableFlags_SpanAllColumns))
 					{
-						LoadAllStarredCallback(group);
+						LoadAllStarredCallback(group, ImGui::IsKeyPressed(ImGuiMod_Shift));
 					}
 
 					ImGui::Separator();
@@ -769,7 +878,7 @@ void ShowProfilesMenu(bool showLoadAll)
 						{
 							if (!ImGui::IsKeyDown(ImGuiMod_Ctrl))
 							{
-								LoadCharacterCallback(profile);
+								LoadCharacterCallback(profile, ImGui::IsKeyPressed(ImGuiMod_Shift));
 
 								ImGui::CloseCurrentPopup();
 							}
@@ -793,14 +902,9 @@ void ShowProfilesMenu(bool showLoadAll)
 
 						ImGui::TableNextColumn();
 						ImGui::TextUnformatted(profile.hotkey.c_str());
-
+							
 						ImGui::TableNextColumn();
-						if (loaded.find(LoginInstance::Key(profile)) != loaded.end())
-						{
-							ImGui::PushStyleColor(ImGuiCol_Text, { 0.f, 1.f, 0.f, 1.f });
-							ImGui::TextUnformatted(ICON_MD_POWER_SETTINGS_NEW);
-							ImGui::PopStyleColor();
-						}
+						DrawStatusIcon(profile);
 					}
 
 					ImGui::PopItemFlag();
@@ -886,7 +990,7 @@ void ShowCharactersMenu()
 
 					ImGui::TableNextColumn();
 					if (ImGui::Selectable(profile.characterName.c_str(), false, ImGuiSelectableFlags_SpanAllColumns))
-						LoadCharacterCallback(profile);
+						LoadCharacterCallback(profile, true);
 
 					ImGui::TableNextColumn();
 					fmt::format_to(buf_ins, "{}", profile.characterLevel);
@@ -904,12 +1008,7 @@ void ShowCharactersMenu()
 					ImGui::PopStyleVar();
 
 					ImGui::TableNextColumn();
-					if (loaded.find(LoginInstance::Key(profile)) != loaded.end())
-					{
-						ImGui::PushStyleColor(ImGuiCol_Text, { 0.f, 1.f, 0.f, 1.f });
-						ImGui::TextUnformatted(ICON_MD_POWER_SETTINGS_NEW);
-						ImGui::PopStyleColor();
-					}
+					DrawStatusIcon(profile);
 
 					ImGui::PopID();
 				}
@@ -920,4 +1019,79 @@ void ShowCharactersMenu()
 			ImGui::EndMenu();
 		}
 	}
+}
+
+void SerializeProfile(const ProfileRecord& record, mq::proto::login::ProfileMethod& profile)
+{
+	profile.set_profile(record.profileName);
+	profile.set_account(record.accountName);
+
+	mq::proto::login::LoginTarget& target = *profile.mutable_target();
+	target.set_server(record.serverName);
+	target.set_character(record.characterName);
+	target.set_server_type(record.serverType);
+}
+
+void SerializeProfile(const ProfileRecord& record, mq::proto::login::DirectMethod& direct)
+{
+	direct.set_login(record.accountName);
+
+	mq::proto::login::LoginTarget& target = *direct.mutable_target();
+	target.set_server(record.serverName);
+	target.set_character(record.characterName);
+	target.set_server_type(record.serverType);
+
+	if (!record.hotkey.empty())
+		direct.set_hotkey(record.hotkey);
+}
+
+ProfileRecord ParseProfileFromMessage(const mq::proto::login::DirectMethod& direct)
+{
+	ProfileRecord profile;
+	if (direct.has_target())
+	{
+		if (direct.target().has_server())
+			profile.serverName = direct.target().server();
+
+		if (direct.target().has_character())
+			profile.characterName = direct.target().character();
+
+		if (direct.target().has_server_type())
+			profile.serverType = direct.target().server_type();
+	}
+
+	profile.accountName = direct.login();
+	profile.accountPassword = direct.password();
+
+	if (direct.has_hotkey())
+		profile.hotkey = direct.hotkey();
+
+	if (direct.has_eq_path())
+		profile.eqPath = direct.eq_path();
+
+	return profile;
+}
+
+ProfileRecord ParseProfileFromMessage(const mq::proto::login::ProfileMethod& profile)
+{
+	ProfileRecord record;
+	record.profileName = profile.profile();
+	record.accountName = profile.account();
+
+	if (profile.has_target() && profile.target().has_character() && profile.target().has_server())
+	{
+		record.serverName = profile.target().server();
+		record.characterName = profile.target().character();
+		record.serverType = profile.target().server_type();
+
+		// get the remaining data from the db for the profile
+		login::db::ReadProfile(record);
+	}
+	else
+	{
+		// only profile -- get the first record
+		login::db::ReadFirstProfile(record);
+	}
+
+	return record;
 }

@@ -32,6 +32,7 @@ namespace fs = std::filesystem;
 using namespace mq;
 
 static ImGuiFileDialog* s_eqDirDialog = nullptr;
+static constexpr AutoLoginSettings defaultSettings;
 
 #pragma region Helpers
 
@@ -615,7 +616,7 @@ static void AccountTable(const std::string_view search)
 						selected_profile = match;
 						selected_profile.accountPassword = login::db::ReadPassword(match.accountName, match.serverType).value_or("");
 
-						LoadCharacter(selected_profile);
+						LoadCharacter(selected_profile, true);
 					}
 
 					ImGui::EndPopup();
@@ -691,8 +692,10 @@ static void CharacterTable(const std::string_view search)
 		| ImGuiTableFlags_Sortable
 		| ImGuiTableFlags_SortMulti;
 
-	static bool show_hidden = true;
+	static auto show_hidden = login::db::CacheSetting<bool>("show_hidden_characters", defaultSettings.ShowHiddenCharacters, GetBoolFromString);
 	float height = ImGui::GetContentRegionAvail().y - ImGui::GetFrameHeightWithSpacing();
+
+	bool should_show_hidden = show_hidden.Read();
 
 	ImGui::PushOverrideID(CharacterInfo::GetID());
 	if (ImGui::BeginTable("Main List", 9, flags, { 0.f, height }))
@@ -732,7 +735,7 @@ static void CharacterTable(const std::string_view search)
 		}
 
 		ImGuiListClipper clipper;
-		if (show_hidden)
+		if (should_show_hidden)
 			clipper.Begin(static_cast<int>(characters.Updated().size()));
 		else
 			clipper.Begin(static_cast<int>(filtered_characters.size()));
@@ -743,7 +746,7 @@ static void CharacterTable(const std::string_view search)
 			for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row)
 			{
 				int idx = row;
-				if (!show_hidden)
+				if (!should_show_hidden)
 					idx = static_cast<int>(filtered_characters.at(row));
 				auto& match = characters.Updated().at(idx);
 				ImGui::PushID(&match);
@@ -824,7 +827,7 @@ static void CharacterTable(const std::string_view search)
 				ImGui::TableNextColumn();
 				if (ImGui::SmallButton("Play"))
 				{
-					LoadCharacter(match);
+					LoadCharacter(match, true);
 				}
 
 				ImGui::SameLine();
@@ -837,12 +840,7 @@ static void CharacterTable(const std::string_view search)
 				}
 
 				ImGui::TableNextColumn();
-				if (loaded.find(LoginInstance::Key(match)) != loaded.end())
-				{
-					ImGui::PushStyleColor(ImGuiCol_Text, { 0.f, 1.f, 0.f, 1.f });
-					ImGui::TextUnformatted(ICON_MD_POWER_SETTINGS_NEW);
-					ImGui::PopStyleColor();
-				}
+				DrawStatusIcon(match);
 
 				ImGui::PopID();
 			}
@@ -852,7 +850,10 @@ static void CharacterTable(const std::string_view search)
 	}
 	ImGui::PopID();
 
-	LauncherImGui::ToggleSlider("Show Hidden Characters", &show_hidden);
+	if (LauncherImGui::ToggleSlider("Show Hidden Characters", &should_show_hidden))
+	{
+		login::db::WriteSetting("show_hidden_characters", should_show_hidden ? "1" : "0", "Show hidden characters in the characters list");
+	}
 
 	EditBehavior(selected_character, "Edit Character", []
 		{
@@ -903,7 +904,7 @@ static void CharacterTable(const std::string_view search)
 
 		DefaultModalButtons([]
 			{
-				LoadCharacter(selected_profile);
+				LoadCharacter(selected_profile, true);
 			});
 
 		LauncherImGui::EndModal();
@@ -1033,9 +1034,9 @@ static void ProfileTable(const std::string& group)
 		| ImGuiTableFlags_NoBordersInBody
 		| ImGuiTableFlags_ScrollY;
 
-	float height = ImGui::GetContentRegionAvail().y - ImGui::GetFrameHeightWithSpacing();
+	ImVec2 size = ImGui::GetContentRegionAvail() - ImVec2(1, ImGui::GetFrameHeightWithSpacing());
 
-	if (ImGui::BeginTable("Main List", 8, flags, { 0.f, height }))
+	if (ImGui::BeginTable("Main List", 8, flags, size))
 	{
 		if (!group.empty())
 		{
@@ -1069,6 +1070,7 @@ static void ProfileTable(const std::string& group)
 			ImGuiListClipper clipper;
 			clipper.Begin(static_cast<int>(profiles.Read(force_profiles_update).size()));
 			const auto& loaded = GetLoadedInstances();
+
 			while (clipper.Step())
 			{
 				for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row)
@@ -1158,16 +1160,11 @@ static void ProfileTable(const std::string& group)
 					ImGui::TableNextColumn();
 					if (ImGui::SmallButton("Play"))
 					{
-						LoadCharacter(profile);
+						LoadCharacter(profile, ImGui::IsKeyPressed(ImGuiMod_Shift));
 					}
 
 					ImGui::TableNextColumn();
-					if (loaded.find(LoginInstance::Key(profile)) != loaded.end())
-					{
-						ImGui::PushStyleColor(ImGuiCol_Text, { 0.f, 1.f, 0.f, 1.f });
-						ImGui::TextUnformatted(ICON_MD_POWER_SETTINGS_NEW);
-						ImGui::PopStyleColor();
-					}
+					DrawStatusIcon(profile);
 
 					ImGui::PopID();
 				}
@@ -1199,8 +1196,6 @@ static void ProfileTable(const std::string& group)
 
 	ImGui::SameLine();
 	ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 0.5f), "Drag & drop a row to reorder");
-	ImGui::SetItemTooltip("Drag & drop a row to reorder");
-
 	HandleProfilesModals();
 }
 
@@ -1376,10 +1371,6 @@ static void ProfileGroupTable(std::string& group)
 		LauncherImGui::OpenModal("Create Profile Group");
 	}
 
-	ImGui::SameLine();
-	ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 0.5f), "Drag & drop a row to reorder");
-	ImGui::SetItemTooltip("Drag & drop a row to reorder");
-
 	HandleProfileGroupsModals(group);
 }
 
@@ -1546,18 +1537,30 @@ void ShowProfilesWindow()
 		}
 	}
 
-	if (ImGui::BeginChild("Profile Groups", { ImGui::GetContentRegionAvail().x * 0.25f, 0.f }, ImGuiChildFlags_None, ImGuiWindowFlags_None))
+	static float rightPaneSize = 0.0f;
+	static float leftPaneSize = 150.0f;
+
+	imgui::DrawSplitter(false, 9.0f, &leftPaneSize, &rightPaneSize, 50, 250);
+
+	ImVec2 availSize = ImGui::GetContentRegionAvail();
+	if (rightPaneSize == 0.0f)
+		rightPaneSize = availSize.x - leftPaneSize - 1;
+
+	// Left Pane
+	if (ImGui::BeginChild("Profile Groups", { leftPaneSize, 0 }))
 	{
 		ProfileGroupTable(group);
 	}
-
 	ImGui::EndChild();
 
 	ImGui::SameLine();
-	if (ImGui::BeginChild("Profiles", { 0.f, 0.f }, ImGuiChildFlags_None, ImGuiWindowFlags_None))
+
+	// Right Pane
+	ImVec2 rightPaneContentSize = ImGui::GetContentRegionAvail();
+	if (ImGui::BeginChild("Profiles", { rightPaneContentSize.x, 0 }))
 	{
 		if (ImGui::Button("Launch Selected Group"))
-			LoadProfileGroup(group);
+			LoadProfileGroup(group, ImGui::IsKeyPressed(ImGuiMod_Shift));
 
 		ImGui::SameLine();
 		ImGui::TextColored({ 1.0f, 1.0f, 1.0f, 0.5f }, "Right click list items to edit or remove");
@@ -1636,12 +1639,12 @@ void ShowAccountsWindow()
 void ShowSettingsWindow()
 {
 	static auto debug = login::db::CacheSetting<bool>("debug", false, GetBoolFromString);
-	static auto kick_active = login::db::CacheSetting<bool>("kick_active", true, GetBoolFromString);
-	static auto end_after_select = login::db::CacheSetting<bool>("end_after_select", false, GetBoolFromString);
+	static auto kick_active = login::db::CacheSetting<bool>("kick_active", defaultSettings.KickActiveCharacter, GetBoolFromString);
+	static auto end_after_select = login::db::CacheSetting<bool>("end_after_select", defaultSettings.EndAfterSelect, GetBoolFromString);
 	static auto load_ini = login::db::CacheSetting<bool>("load_ini", false, GetBoolFromString);
-	static auto client_launch_delay = login::db::CacheSetting<int>("client_launch_delay", 3, GetIntFromString);
-	static auto char_select_delay = login::db::CacheSetting<int>("char_select_delay", 3, GetIntFromString);
-	static auto connect_retries = login::db::CacheSetting<int>("connect_retries", 0, GetIntFromString);
+	static auto client_launch_delay = login::db::CacheSetting<int>("client_launch_delay", defaultSettings.ClientLaunchDelay, GetIntFromString);
+	static auto char_select_delay = login::db::CacheSetting<int>("char_select_delay", defaultSettings.CharSelectDelay, GetIntFromString);
+	static auto connect_retries = login::db::CacheSetting<int>("login_connect_retries", defaultSettings.ConnectRetries, GetIntFromString);
 
 	static auto password_timeout_hours = login::db::CacheSetting<int>("password_timeout_hours", 720, GetIntFromString);
 	static std::string hours_label = fmt::format("Hours to Save Password ({:.1f} days)", static_cast<float>(password_timeout_hours.Read()) / 24.f);
@@ -1687,7 +1690,7 @@ void ShowSettingsWindow()
 	ImGui::Spacing();
 	ImGui::SetNextItemWidth(50.f);
 	if (ImGui::InputScalar("Connect Retries", ImGuiDataType_U32, &connect_retries.Read()))
-		login::db::WriteSetting("connect_retries", std::to_string(connect_retries.Updated()), "Number of times to attempt to reconnect, 0 for infinite");
+		login::db::WriteSetting("login_connect_retries", std::to_string(connect_retries.Updated()), "Number of times to attempt to reconnect, 0 for infinite");
 	ImGui::SameLine(); imgui::HelpMarker("Number of times to attempt to reconnect, 0 for infinite");
 
 	ImGui::Spacing();
@@ -1870,7 +1873,7 @@ void InitializeAutoLoginImGui()
 
 	RegisterGlobalHotkeyCallback = [](uint32_t processId, const std::string& hotkey)
 	{
-		SPDLOG_DEBUG("Register Global Hotkey: pid={} hotkey={}");
+		SPDLOG_DEBUG("Register Global Hotkey: pid={} hotkey={}", processId, hotkey);
 
 		RegisterGlobalHotkey(GetEQWindowHandleForProcessId(processId), hotkey);
 	};
