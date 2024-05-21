@@ -989,8 +989,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT MSG, WPARAM wParam, LPARAM lParam)
 		OnProcessRemoved(static_cast<uint32_t>(wParam));
 		break;
 
-	case WM_USER_CALLBACK:
+	case WM_USER_HOTKEY_ADD:
+	{
+		uint16_t modkey = static_cast<uint16_t>(wParam);
+		uint16_t hotkey = static_cast<uint16_t>(lParam);
+		RegisterHotKey(hMainWnd, MAKELONG(modkey, hotkey), modkey, hotkey);
 		break;
+	}
+
+	case WM_USER_HOTKEY_REMOVE:
+	{
+		uint16_t modkey = static_cast<uint16_t>(wParam);
+		uint16_t hotkey = static_cast<uint16_t>(lParam);
+		UnregisterHotKey(hMainWnd, MAKELONG(modkey, hotkey));
+		break;
+	}
 
 	default:
 		if (MSG == NID.uCallbackMessage) // This is where we get our SysTray Icon notifications.
@@ -1628,7 +1641,6 @@ int WINAPI CALLBACK WinMain(
 	LauncherImGui::Run(
 		[&msg]()
 		{
-			ProcessPipeServer();
 			ProcessPendingLogins();
 			CheckPruneLogging();
 
@@ -1651,9 +1663,9 @@ int WINAPI CALLBACK WinMain(
 	SPDLOG_INFO("Shutting down...");
 
 	// Shutdown
-	UnregisterHotKey(hMainWnd, 1);
-	UnregisterHotKey(hMainWnd, 2);
-	UnregisterHotKey(hMainWnd, 3);
+	UnregisterHotKey(hMainWnd, HOTKEY_EQWIN_PREVIOUS);
+	UnregisterHotKey(hMainWnd, HOTKEY_EQWIN_NEXT);
+	UnregisterHotKey(hMainWnd, HOTKEY_EQWIN_BOSSKEY);
 	UnregisterGlobalHotkey(hMainWnd);
 	Shell_NotifyIcon(NIM_DELETE, &NID);
 
@@ -1684,7 +1696,7 @@ HWND LocateHotkeyWindow(WORD modkey, WORD hotkey)
 		}
 
 		// we don't have a valid window, so let's drop the hotkey
-		UnregisterHotKey(wnd_it->second, MAKELONG(modkey, hotkey));
+		SendMessageA(hMainWnd, WM_USER_HOTKEY_ADD, modkey, hotkey);
 		hotkeyMap.erase(wnd_it);
 	}
 
@@ -1700,12 +1712,12 @@ void RegisterGlobalHotkey(HWND hWnd, std::string_view hotkeyString)
 	if (wnd_it != hotkeyMap.end())
 	{
 		// the hotkey already exists, so drop it and replace it with the new one
-		UnregisterHotKey(wnd_it->second, MAKELONG(modkey, hotkey));
+		SendMessageA(hMainWnd, WM_USER_HOTKEY_REMOVE, modkey, hotkey);
 		hotkeyMap.erase(wnd_it);
 	}
 
 	hotkeyMap[std::make_pair(modkey, hotkey)] = hWnd;
-	RegisterHotKey(hMainWnd, MAKELONG(modkey, hotkey), modkey, hotkey);
+	SendMessageA(hMainWnd, WM_USER_HOTKEY_ADD, modkey, hotkey);
 }
 
 void UnregisterGlobalHotkey(std::string_view hotkeyString)
@@ -1716,7 +1728,7 @@ void UnregisterGlobalHotkey(std::string_view hotkeyString)
 	auto wnd_it = hotkeyMap.find(std::make_pair(modkey, hotkey));
 	if (wnd_it != hotkeyMap.end())
 	{
-		UnregisterHotKey(wnd_it->second, MAKELONG(modkey, hotkey));
+		SendMessageA(hMainWnd, WM_USER_HOTKEY_REMOVE, modkey, hotkey);
 		hotkeyMap.erase(wnd_it);
 	}
 }
@@ -1729,7 +1741,7 @@ void UnregisterGlobalHotkey(HWND hWnd)
 		});
 	if (wnd_it != hotkeyMap.end())
 	{
-		UnregisterHotKey(wnd_it->second, MAKELONG(std::get<0>(wnd_it->first), std::get<1>(wnd_it->first)));
+		SendMessageA(hMainWnd, WM_USER_HOTKEY_REMOVE, std::get<0>(wnd_it->first), std::get<1>(wnd_it->first));
 		hotkeyMap.erase(wnd_it);
 	}
 }
