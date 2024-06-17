@@ -311,3 +311,6 @@
 [submodule "plugins/MQCollectionManager"]
 	path = plugins/MQCollectionManager
 	url = https://github.com/relaxednature/MQCollectionManager
+[submodule "plugins/MQ2Discord"]
+	path = plugins/MQ2Discord
+	url = https://gitlab.com/alynel/mq2discord.git
