@@ -1,3 +1,38 @@
+Aug 21, 2024:
+- Update for live patch
+- Add SpellHold to Pet TLO (#893)
+
+Aug 19, 20924:
+- Update for test patch
+
+July 28, 2024:
+- Update for test patch
+
+July 22, 2024:
+- Update for live hotfix patch
+
+July 18, 2024:
+- Update for live hotfix patch
+
+July 17, 2024:
+- Update for live patch
+
+July 14, 2024:
+- test: Update for test patch
+
+July 7, 2024:
+- Add new HotButton window type: ${Window[HotButtonWnd2/HB_Button6].HotButton}
+- See docs at: https://docs.macroquest.org/reference/data-types/datatype-hotbuttonwindow/
+- Me.CombatState no longer depends on the player window being visible (#123).
+
+July 3, 2024:
+- Fix EverQuest.Ping, add EverQuest.ConnectionStrength - these are the value from the net meter.
+- Fix UI not working after persona swap (#797).
+
+July 1, 2024:
+- emu: Fix CTAFrameDraw, fixes several issues with window inspector (#871)
+- emu: Fix CBazaarSearchWnd, fixes several issues with /bzsrch (#872)
+
 June 24, 2024:
 - Update for live hotfix patch
 
