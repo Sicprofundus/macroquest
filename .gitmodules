@@ -141,10 +141,6 @@
 	path = plugins/MQ2PluginManager
 	url = https://github.com/RedGuides/MQ2PluginManager.git
 	branch = master
-[submodule "plugins/MQ2PortalSetter"]
-	path = plugins/MQ2PortalSetter
-	url = https://github.com/RedGuides/MQ2PortalSetter.git
-	branch = master
 [submodule "plugins/MQ2Posse"]
 	path = plugins/MQ2Posse
 	url = https://github.com/RedGuides/MQ2Posse.git
@@ -305,12 +301,13 @@
 [submodule "plugins/CWTN/Unreleased"]
 	path = plugins/CWTN/Unreleased
 	url = https://github.com/jessebevil/Unreleased
-[submodule "plugins/lua/lua"]
-	path = plugins/lua/lua
-	url = https://github.com/macroquest/integration-tests
 [submodule "plugins/MQCollectionManager"]
 	path = plugins/MQCollectionManager
 	url = https://github.com/relaxednature/MQCollectionManager
 [submodule "plugins/MQ2Discord"]
 	path = plugins/MQ2Discord
 	url = https://gitlab.com/alynel/mq2discord.git
+[submodule "plugins/MQ2PortalSetter"]
+	path = plugins/MQ2PortalSetter
+	url = https://github.com/RedGuides/MQ2PortalSetter.git
+	branch = master
