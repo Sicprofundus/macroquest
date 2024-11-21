@@ -1400,7 +1400,7 @@ void PluginCommand(SPAWNINFO* pChar, char* szLine)
 					const std::string origPluginName = plugin ? plugin->szFilename : szName;
 					if (plugin || IsPluginUnloadFailed(origPluginName))
 					{
-						if (UnloadPlugin(origPluginName, !noauto))
+						if (UnloadPlugin(szName, !noauto))
 						{
 							WriteChatf("Plugin '%s' unloaded.", origPluginName.c_str());
 						}
