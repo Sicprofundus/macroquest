@@ -5198,7 +5198,7 @@ ItemContainer* GetItemContainerByType(ItemContainerInstance type)
 	case eItemContainerTeleportationKeyRingItems:
 		return &pLocalPC->TeleportationKeyRingItems;
 #endif
-#if HAS_ACTIVATED_KEYRING
+#if HAS_ACTIVATED_ITEM_KEYRING
 	case eItemContainerActivatedKeyRingItems:
 		return &pLocalPC->ActivatedKeyRingItems;
 #endif
@@ -6467,7 +6467,7 @@ int GetCharMaxLevel()
 {
 	int MaxLevel = 50;
 
-	if (HasExpansion(EXPANSION_LS))
+	if (HasExpansion(EXPANSION_LS) || HasExpansion(EXPANSION_TOB))
 	{
 		MaxLevel = 125;
 	}
