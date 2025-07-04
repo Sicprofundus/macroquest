@@ -5,7 +5,7 @@
 	path = contrib/vcpkg
 	url = https://github.com/macroquest/vcpkg.git
 	branch = macroquest
-[submodule "data/lua/IntegrationTests"]
+[submodule "plugins/MQ2MoveUtils"]
 	path = plugins/MQ2MoveUtils
 	url = https://github.com/RedGuides/mq2moveutils.git
 	branch = master
@@ -308,5 +308,6 @@
 	path = plugins/MQ2PortalSetter
 	url = https://github.com/RedGuides/MQ2PortalSetter.git
 	branch = master
+[submodule "data/lua/IntegrationTests"]
 	path = src/plugins/lua/lua/IntegrationTests
 	url = https://github.com/macroquest/integration-tests.git
