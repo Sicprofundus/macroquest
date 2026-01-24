@@ -10,14 +10,30 @@
 	path = plugins/MQ2MoveUtils
 	url = https://github.com/RedGuides/mq2moveutils.git
 	branch = master
-[submodule "plugins/MQ2BardSwap"]
-	path = plugins/MQ2BardSwap
-	url = https://github.com/RedGuides/MQ2BardSwap.git
-	branch = master
 [submodule "plugins/MQ2Collectible"]
 	path = plugins/MQ2Collectible
 	url = https://github.com/RedGuides/mq2collectible.git
 	branch = main
+[submodule "plugins/MQ2AFNuke"]
+	path = plugins/MQ2AFNuke
+	url = https://github.com/RedGuides/mq2afnuke.git
+	branch = master
+[submodule "plugins/MQ2Heals"]
+	path = plugins/MQ2Heals
+	url = https://github.com/RedGuides/mq2heals.git
+	branch = master
+[submodule "plugins/MQ2DanInterface"]
+	path = plugins/MQ2DanInterface
+	url = https://github.com/RedGuides/mq2daninterface.git
+	branch = master
+[submodule "plugins/MQ2Profiler"]
+	path = plugins/MQ2Profiler
+	url = https://github.com/RedGuides/mq2profiler.git
+	branch = master
+[submodule "plugins/mq2bardswap"]
+	path = plugins/mq2bardswap
+	url = https://github.com/RedGuides/mq2bardswap.git
+	branch = master
 [submodule "plugins/MQ2DotNet"]
 	path = plugins/MQ2DotNet
 	url = https://github.com/projecteon/MQ2DotNet.git
