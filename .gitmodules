@@ -14,14 +14,6 @@
 	path = plugins/MQ2Collectible
 	url = https://github.com/RedGuides/mq2collectible.git
 	branch = main
-[submodule "plugins/MQ2AFNuke"]
-	path = plugins/MQ2AFNuke
-	url = https://github.com/RedGuides/mq2afnuke.git
-	branch = master
-[submodule "plugins/MQ2Heals"]
-	path = plugins/MQ2Heals
-	url = https://github.com/RedGuides/mq2heals.git
-	branch = master
 [submodule "plugins/MQ2DanInterface"]
 	path = plugins/MQ2DanInterface
 	url = https://github.com/RedGuides/mq2daninterface.git
@@ -365,3 +357,6 @@
 [submodule "data/lua/IntegrationTests"]
 	path = src/plugins/lua/lua/IntegrationTests
 	url = https://github.com/macroquest/integration-tests.git
+[submodule "plugins/MQSearchItem"]
+	path = plugins/MQSearchItem
+	url = https://github.com/jessebevil/MQSearchItem.git
