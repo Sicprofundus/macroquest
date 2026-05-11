@@ -441,7 +441,10 @@ jobs:
       - name: Update LuaRocks binaries
         shell: pwsh
         run: |
-          $debug = $true
+          $debug = $env:ACTIONS_STEP_DEBUG -eq 'true'
+          if ($debug) {
+            $DebugPreference = 'Continue'
+          }
           $LuaCloneDir = "${{ github.workspace }}\build\Lua\LuaRocks"
           $LuaRocksDir = "$LuaCloneDir\LuaRocks"
           $GitFolder = "${{ github.workspace }}\build\Lua\LuaRockServer"
@@ -521,17 +524,21 @@ jobs:
 
           if (-NOT (Test-Path $GitFolder -PathType Container)) {
             $cmd = "git clone$gitQuiet$GitURL `"$GitFolder`""
-            # Write-Debug "Running: $cmd"
+            # $cmd contains the OAuth token from $GitURL. We're relying on GitHub Actions to mask registered secrets in logs. If
+            # logs are ever shipped to a different destination the token should be masked before logging.
+            Write-Debug "Running: $cmd"
             Invoke-Expression $cmd
           } else {
             $cmd = "git -C `"$GitFolder`" pull$gitQuiet --rebase"
-            # Write-Debug "Running: $cmd"
+            Write-Debug "Running: $cmd"
             Invoke-Expression $cmd
             if (-NOT ($LASTEXITCODE -eq 0)) {
-              # Write-Debug "Pull failed, removing folder: $GitFolder"
+              Write-Debug "Pull failed, removing folder: $GitFolder"
               Remove-Item -Path $GitFolder -Force -Recurse
               $cmd = "git clone$gitQuiet$GitURL `"$GitFolder`""
-              # Write-Debug "Running: $cmd"
+              # $cmd contains the OAuth token from $GitURL. We're relying on GitHub Actions to mask registered secrets in logs. If
+              # logs are ever shipped to a different destination the token should be masked before logging.
+              Write-Debug "Running: $cmd"
               Invoke-Expression $cmd
             }
           }
@@ -640,7 +647,7 @@ jobs:
 
               $installModule = $false
               if (-NOT ($VersionList -eq $VersionSearch)) {
-                # Write-Debug "Installing $LuaRock because current version [$VersionList] does not match latest version [$VersionSearch]"
+                Write-Debug "Installing $LuaRock because current version [$VersionList] does not match latest version [$VersionSearch]"
                 $installModule = $true
               }
 
@@ -649,7 +656,7 @@ jobs:
                   $yaml[$LuaRock].files | ForEach-Object {
                     $requiredFilePath = "$($LuaRocksDir)\$luajitVersion$($systreeNode)\systree\lib\lua\5.1\$($_)"
                     if (-NOT (Test-Path $requiredFilePath -PathType Leaf)) {
-                      # Write-Debug "Installing $LuaRock because required file does not exist: $requiredFilePath"
+                      Write-Debug "Installing $LuaRock because required file does not exist: $requiredFilePath"
                       $installModule = $true
                     }
                   }
@@ -664,22 +671,22 @@ jobs:
               }
               if ($installModule -Or (Get-ChildItem -File $LuaRockServer -Filter $rockFilter).Count -lt 1) {
                 if (-Not $installModule) {
-                  # Write-Debug "Installing $LuaRock because the rock is missing for $rockFilter"
+                  Write-Debug "Installing $LuaRock because the rock is missing for $rockFilter"
                 }
                 Write-Host "**** Installing $LuaRock ****"
-                # Write-Debug "Checking Dependencies"
+                Write-Debug "Checking Dependencies"
                 if ($yaml[$LuaRock].external_deps.Count -gt 0) {
                   $yaml[$LuaRock].external_deps | ForEach-Object {
                     $_ | Out-File $LuaRocksDir/vcpkg_mq.txt
                   }
-                  # Write-Debug "Running vcpkg_mq for dependencies..."
+                  Write-Debug "Running vcpkg_mq for dependencies..."
                   & powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$vcpkg_mq" -ProjectName LuaRocks -ProjectDirectory "$LuaRocksDir" -MQRoot "${{ github.workspace }}" -Platform $Platform -Toolchain v143
-                  # Write-Debug "Done Running vcpkg_mq"
+                  Write-Debug "Done Running vcpkg_mq"
                 } else {
-                  # Write-Debug "No dependencies needed"
+                  Write-Debug "No dependencies needed"
                 }
                 $cmd = ".\luarocks install $LuaRock$luarocksQuiet"
-                # Write-Debug "Performing Install: $cmd"
+                Write-Debug "Performing Install: $cmd"
                 $LuaInstallOutput = Invoke-Expression $cmd
                 $installSucceeded = $?
                 $LuaInstallOutput = $LuaInstallOutput -join "`r`n"
@@ -695,7 +702,7 @@ jobs:
                     -Title "LuaRocks install command failed for [$LuaRock] (${{ github.ref_name }})" `
                     -Description $failMsg `
                     -Color "15548997"
-                  # Write-Debug -Message $LuaInstallOutput
+                  Write-Debug -Message $LuaInstallOutput
                 } else {
                   if (-NOT $installedThisRun.ContainsKey($LuaRock)) {
                     $failMsg = "Failed to install $LuaRock during this run."
@@ -704,7 +711,7 @@ jobs:
                       -Title "LuaRocks install failed for [$LuaRock] (${{ github.ref_name }})" `
                       -Description $failMsg `
                       -Color "15548997"
-                    # Write-Debug $LuaInstallOutput
+                    Write-Debug $LuaInstallOutput
                   } else {
                     $filesGood = $true
                     if ($yaml[$LuaRock].files.Count -gt 0) {
@@ -717,7 +724,7 @@ jobs:
                             -Title "LuaRocks missing file for [$LuaRock] (${{ github.ref_name }})" `
                             -Description $failMsg `
                             -Color "15548997"
-                          # Write-Debug $LuaInstallOutput
+                          Write-Debug $LuaInstallOutput
                         }
                       }
                     } elseif ($yaml[$LuaRock].lua_only -eq $true) {
@@ -730,7 +737,7 @@ jobs:
                         -Title "LuaRocks missing rock for [$LuaRock] (${{ github.ref_name }})" `
                         -Description $failMsg `
                         -Color "15548997"
-                      # Write-Debug -Message $LuaInstallOutput
+                      Write-Debug -Message $LuaInstallOutput
                     }
                     if ($filesGood) {
                       Set-Location $LuaRockServer
@@ -781,7 +788,7 @@ jobs:
                     } else {
                       $cmd = "git -C `"$LuaRockServerRoot`" push$gitQuiet"
                       $cmd = $cmd.Trim()
-                      # Write-Debug "Running: $cmd"
+                      Write-Debug "Running: $cmd"
                       $gitOutput = Invoke-Expression $cmd
                       if (!$?) {
                         Write-Error "LuaRocks could not push changes -- $gitOutput"
