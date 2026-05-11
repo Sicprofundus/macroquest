@@ -454,6 +454,25 @@ jobs:
           $systreeNode = "\$Platform"
           $vcpkg_mq = "${{ github.workspace }}\tools\build_scripts\vcpkg_mq.ps1"
 
+          function Send-DiscordNotification {
+            param(
+              [Parameter(Mandatory)][string]$Title,
+              [Parameter(Mandatory)][string]$Description,
+              [Parameter(Mandatory)][string]$Color
+            )
+            [System.Collections.ArrayList]$embedArray = @()
+            $embedObject = [PSCustomObject]@{
+              color = $Color
+              title = $Title
+              description = $Description
+            }
+            $embedArray.Add($embedObject) | Out-Null
+            $discordPayload = [PSCustomObject]@{
+              embeds = $embedArray
+            } | ConvertTo-Json
+            Invoke-RestMethod -Uri '${{ secrets.MQDISCORD_DEV_WEBHOOK }}' -Method Post -Body $discordPayload -ContentType 'application/json'
+          }
+
           $luajit = "${{ github.workspace }}\contrib\vcpkg\installed\$($Platform)-windows-static\tools\luajit.exe"
 
           # Create Lua folder if it does not exist:
@@ -550,6 +569,7 @@ jobs:
             Set-Location $LuaRocksDir
 
             $updateManifest = $false
+            $installedThisRun = @{}
             ForEach ($LuaRock in $yaml.Keys) {
               $LuaSearchOutput = .\luarocks search $LuaRock
               if (!$?) {
@@ -612,17 +632,10 @@ jobs:
               if (-NOT ($VersionSearch -eq $UpstreamVersionSearch)) {
                 $discordMessage = "A newer version of $LuaRock exists upstream, the MQ moonrocks repository needs to be updated: (Ours: [$VersionSearch] Upstream: [$UpstreamVersionSearch])"
                 Write-Warning $discordMessage
-                [System.Collections.ArrayList]$embedArray = @()
-                $embedObject = [PSCustomObject]@{
-                  color = "16705372"
-                  title = "Newer version of Moonrock [$LuaRock] upstream (${{ github.ref_name }})"
-                  description = $discordMessage
-                }
-                $embedArray.Add($embedObject) | Out-Null
-                $discordPayload = [PSCustomObject]@{
-                  embeds = $embedArray
-                } | ConvertTo-Json
-                Invoke-RestMethod -Uri '${{ secrets.MQDISCORD_DEV_WEBHOOK }}' -Method Post -Body $discordPayload -ContentType 'application/json'
+                Send-DiscordNotification `
+                  -Title "Newer version of Moonrock [$LuaRock] upstream (${{ github.ref_name }})" `
+                  -Description $discordMessage `
+                  -Color "16705372"
               }
 
               $installModule = $false
@@ -643,9 +656,15 @@ jobs:
                 }
               }
 
-              if ($installModule -Or (Get-ChildItem -File $LuaRockServer -Filter $LuaRock*.rock).Count -lt 1) {
+              if ($yaml[$LuaRock].lua_only -eq $true) {
+                $rockFilter = "$LuaRock-*.all.rock"
+              } else {
+                $archTag = if ($Platform -eq 'x86') { 'win32-x86' } else { 'win32-x86_64' }
+                $rockFilter = "$LuaRock-*.$archTag.rock"
+              }
+              if ($installModule -Or (Get-ChildItem -File $LuaRockServer -Filter $rockFilter).Count -lt 1) {
                 if (-Not $installModule) {
-                  # Write-Debug "Installing $LuaRock because the rock is missing from $LuaRockServer"
+                  # Write-Debug "Installing $LuaRock because the rock is missing for $rockFilter"
                 }
                 Write-Host "**** Installing $LuaRock ****"
                 # Write-Debug "Checking Dependencies"
@@ -662,13 +681,29 @@ jobs:
                 $cmd = ".\luarocks install $LuaRock$luarocksQuiet"
                 # Write-Debug "Performing Install: $cmd"
                 $LuaInstallOutput = Invoke-Expression $cmd
+                $installSucceeded = $?
                 $LuaInstallOutput = $LuaInstallOutput -join "`r`n"
-                if (!$?) {
-                  Write-Error "FAILED: $cmd"
+                # Track every package luarocks reports as installed (including transitive deps)
+                # so a later iteration can recognize them even when the command says "already installed".
+                [regex]::Matches($LuaInstallOutput, '(\S+)\s+\S+\s+is now installed in') | ForEach-Object {
+                  $installedThisRun[$_.Groups[1].Value] = $true
+                }
+                if (-NOT $installSucceeded) {
+                  $failMsg = "FAILED: $cmd"
+                  Write-Error $failMsg
+                  Send-DiscordNotification `
+                    -Title "LuaRocks install command failed for [$LuaRock] (${{ github.ref_name }})" `
+                    -Description $failMsg `
+                    -Color "15548997"
                   # Write-Debug -Message $LuaInstallOutput
                 } else {
-                  if (-NOT ($LuaInstallOutput -match "is now installed in")) {
-                    Write-Error "Failed to install $LuaRock"
+                  if (-NOT $installedThisRun.ContainsKey($LuaRock)) {
+                    $failMsg = "Failed to install $LuaRock during this run."
+                    Write-Error $failMsg
+                    Send-DiscordNotification `
+                      -Title "LuaRocks install failed for [$LuaRock] (${{ github.ref_name }})" `
+                      -Description $failMsg `
+                      -Color "15548997"
                     # Write-Debug $LuaInstallOutput
                   } else {
                     $filesGood = $true
@@ -676,15 +711,25 @@ jobs:
                       $yaml[$LuaRock].files | ForEach-Object {
                         if (-NOT (Test-Path "$($LuaRocksDir)\$luajitVersion$($systreeNode)\systree\lib\lua\5.1\$($_)" -PathType Leaf)) {
                           $filesGood = $false
-                          Write-Error "LuaRocks error:  $LuaRock missing file $_"
+                          $failMsg = "LuaRocks error:  $LuaRock missing file $_"
+                          Write-Error $failMsg
+                          Send-DiscordNotification `
+                            -Title "LuaRocks missing file for [$LuaRock] (${{ github.ref_name }})" `
+                            -Description $failMsg `
+                            -Color "15548997"
                           # Write-Debug $LuaInstallOutput
                         }
                       }
                     } elseif ($yaml[$LuaRock].lua_only -eq $true) {
                       # Nothing else to check since this is pure lua.
-                    } elseif ((Get-ChildItem -File $LuaRockServer -Filter $LuaRock*.rock).Count -lt 1) {
+                    } elseif ((Get-ChildItem -File $LuaRockServer -Filter $rockFilter).Count -lt 1) {
                       $filesGood = $false
-                      Write-Error "LuaRocks error:  $LuaRock had no files and is missing rock."
+                      $failMsg = "LuaRocks error:  $LuaRock had no files and is missing rock."
+                      Write-Error $failMsg
+                      Send-DiscordNotification `
+                        -Title "LuaRocks missing rock for [$LuaRock] (${{ github.ref_name }})" `
+                        -Description $failMsg `
+                        -Color "15548997"
                       # Write-Debug -Message $LuaInstallOutput
                     }
                     if ($filesGood) {
