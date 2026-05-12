@@ -44,7 +44,7 @@ jobs:
           exit 1
 
       - name: Install and cache PowerShell modules
-        uses: potatoqualitee/psmodulecache@v6.2.1
+        uses: Knightly1/psmodulecache@v6
         with:
           modules-to-cache: powershell-yaml
 
