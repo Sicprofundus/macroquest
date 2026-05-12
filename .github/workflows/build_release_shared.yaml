@@ -317,15 +317,30 @@ jobs:
 
       - name: Sign Code
         shell: pwsh
+        env:
+          KMS_KEY: ${{ secrets.KMS_KEY }}
+          SIGNING_CERT: ${{ secrets.SIGNING_CERT }}
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
         run: |
-          $SignCert = "build/bin/signcert.pfx"
-          [IO.File]::WriteAllBytes($SignCert, [Convert]::FromBase64String("${{ secrets.SIGNCERT }}"))
-          $FileList = Get-ChildItem -Path "build/bin/release" -Recurse -Include *.exe, *.dll | Where-Object { $_.Name -ne "D3DX9_43.dll" }
-          $signtool = (Get-ChildItem -Recurse "${ENV:ProgramFiles(x86)}\Windows Kits" -Filter signtool.exe | Where-Object { $_.FullName -notmatch 'arm' } | Sort-Object LastWriteTime | Select-Object -last 1).FullName
-          ForEach ($file in $FileList) {
-            & $signtool sign /fd SHA256 /f "$SignCert" /p "${{ secrets.SIGNCERT_PASS }}" /t http://timestamp.digicert.com "$file" | Out-Null
+          # Fail fast if the kmscng CSP isn't installed on the runner. Otherwise signtool fails with a generic error.
+          if (-not (Test-Path "$env:SystemRoot\System32\kmscng.dll")) {
+            throw "Google Cloud KMS Provider (kmscng) is not installed on this runner. Install the MSI from https://github.com/GoogleCloudPlatform/kms-integrations/releases?q=cng&expanded=true and re-run."
           }
-          Remove-Item -Force build/bin/signcert.pfx
+          $CertFile = "${{ github.workspace }}\build\bin\user.crt"
+          $KeyFile = "${{ github.workspace }}\build\bin\gcp-sa.json"
+          [IO.File]::WriteAllBytes($CertFile, [Convert]::FromBase64String($env:SIGNING_CERT))
+          [IO.File]::WriteAllText($KeyFile, $env:GCP_SA_KEY)
+          $env:GOOGLE_APPLICATION_CREDENTIALS = $KeyFile
+          $FileList = Get-ChildItem -Path "build/bin/release" -Recurse -Include *.exe, *.dll |
+            Where-Object { $_.Name -ne "D3DX9_43.dll" }
+          $signtool = (Get-ChildItem -Recurse "${ENV:ProgramFiles(x86)}\Windows Kits" -Filter signtool.exe |
+            Where-Object { $_.FullName -notmatch 'arm' } | Sort-Object LastWriteTime | Select-Object -last 1).FullName
+          ForEach ($file in $FileList) {
+            & $signtool sign /fd SHA256 /f $CertFile /csp "Google Cloud KMS Provider" /kc $env:KMS_KEY `
+              /tr http://timestamp.digicert.com /td sha256 "$file"
+            if ($LASTEXITCODE -ne 0) { throw "Signing failed for $file" }
+          }
+          Remove-Item -Force $CertFile, $KeyFile
 
       - name: Create MacroQuest Archive
         shell: pwsh
