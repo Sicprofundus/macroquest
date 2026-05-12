@@ -314,3 +314,7 @@
 [submodule "plugins/MQOpCode"]
 	path = plugins/MQOpCode
 	url = https://github.com/Razzrr/MQOPCODE.git
+
+[submodule "src/plugins/lua/lua/IntegrationTests"]
+	path = src/plugins/lua/lua/IntegrationTests
+	url = https://github.com/macroquest/integration-tests.git
