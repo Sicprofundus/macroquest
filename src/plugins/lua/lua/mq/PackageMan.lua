@@ -40,12 +40,28 @@ local cliCachePath = cliInstallPath .. '\\cache'
 ---@param package_name string The package name
 ---@return integer InstallResult, string ResultMessage
 PackageMan.Install = function(package_name)
-    if not package_name then return 4, "no package" end
+    if not package_name then
+        if PackageMan.debug then
+            print("DEBUG: No package name provided")
+        end
+        return 4, "no package"
+    end
 
     local callString = 'unknown'
-    local callerInfo = debug.getinfo(3,'Sl')
-    if callerInfo and callerInfo.short_src ~= nil and callerInfo.short_src ~= '=[C]' then
-        callString = callerInfo.short_src:match("[^\\^/]*.lua$")
+    for level = 2, 10 do
+        local callerInfo = debug.getinfo(level, 'Sl')
+        if not callerInfo then break end
+        if callerInfo.short_src and callerInfo.short_src ~= '=[C]' then
+            local filename = callerInfo.short_src:match("[^\\^/]*.lua$")
+            if filename and filename ~= 'PackageMan.lua' then
+                if filename == 'init.lua' then
+                    callString = callerInfo.short_src:match("([^\\^/]+)[/\\]init%.lua$") or filename
+                else
+                    callString = filename
+                end
+                break
+            end
+        end
     end
 
     if Utils.File.Exists(cliLuarocksPath) then
@@ -64,10 +80,16 @@ PackageMan.Install = function(package_name)
         local result = ImguiHelper.Popup.Modal(title, text, { "Install", "Cancel" })
         -- user said no
         if result == 2 then
+            if PackageMan.debug then
+                print("DEBUG: User cancelled installation")
+            end
             return 2, "user said no"
         end
         -- prompt timed out
         if result == 0 then
+            if PackageMan.debug then
+                print("DEBUG: Installation prompt timed out")
+            end
             return 5, "prompt timed out"
         end
 
@@ -76,21 +98,31 @@ PackageMan.Install = function(package_name)
             print("DEBUG: Executing the following command:")
             print(execute_string)
         end
-        local command = string.format('"%s"', execute_string)
+        local command = string.format('"%s" 2>&1', execute_string)
         local handle = io.popen(command)
         if handle then
-            local result = handle:read("*a")
+            local output = handle:read("*a")
             handle:close()
-            if not string.find(result, "is now installed") then
+            if PackageMan.debug then
+                print("DEBUG: Command output:")
+                print(output)
+            end
+            if not string.find(output, "is now installed") then
                 if PackageMan.debug then
-                    print(result)
+                    print("DEBUG: Package install failed - 'is now installed' not found in output")
                 end
                 return 3, "package install failed"
             end
         else
+            if PackageMan.debug then
+                print("DEBUG: Failed to open process for command")
+            end
             return 6, "open process failed"
         end
     else
+        if PackageMan.debug then
+            print("DEBUG: luarocks.exe not found at " .. cliLuarocksPath)
+        end
         return 1, "luarocks not installed"
     end
     return 0, "success"
@@ -117,6 +149,11 @@ end
 ---@param fail_message? string Override fail message if package fails to load
 ---@return any
 PackageMan.Require = function(package_name, require_name, fail_message)
+    if not package_name then
+        print("\arPackageMan.Require: Package Name cannot be nil")
+        mq.exit()
+    end
+
     require_name = require_name or package_name
 
     if not fail_message then
@@ -126,18 +163,20 @@ PackageMan.Require = function(package_name, require_name, fail_message)
         end
     end
 
-    if package_name then
-        local my_package = Utils.Library.Include(require_name)
-        local result_message = nil
-        if not my_package then
-            my_package, result_message = PackageMan.InstallAndLoad(package_name, require_name)
+    local my_package = Utils.Library.Include(require_name)
+    local result_message = nil
+    if not my_package then
+        if not mq.canDelay() then
+            printf("%s :: package '%s' (require '%s') is not installed and cannot prompt to install. Ensure the caller is the main script and not a module.", fail_message, package_name, require_name)
+            mq.exit()
         end
-        if my_package then
-            return my_package
-        end
-        if result_message then
-            fail_message = fail_message .. " :: " .. result_message
-        end
+        my_package, result_message = PackageMan.InstallAndLoad(package_name, require_name)
+    end
+    if my_package then
+        return my_package
+    end
+    if result_message then
+        fail_message = fail_message .. " :: " .. result_message
     end
 
     print(fail_message)

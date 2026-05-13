@@ -1,3 +1,103 @@
+## 4/26/2026
+
+### Features
+
+Support for stencil and alpha masking is now available through ImGui to c++ and lua. This allows for
+creating more advanced effects like rounded corners on anything or gradient text.
+
+- For more info see [mq/imgui/AlphaMask.h](https://github.com/macroquest/macroquest/blob/master/include/mq/imgui/AlphaMask.h).
+- An example is available via `/lua run examples/imgui_mask_demo`
+
+
+## 4/22/2026
+
+### Bug fixes
+
+- Fixed an issue where the lua imgui binding for BeginPopupModal was not properly allowing flags
+- Added some brute force tactics to `/foreground` so that it will work in more situations
+- Fix context menu losing focus and not closing on focus
+- rof2: Fix crash when opening alt ability inspector
+
+### Features
+
+- Added mq.canDelay() - returns true if the script is in a state where delay is allowed
+
+### PackageMan improvements
+
+- Cleaned up workarounds in PackageMan.lua for the flag issue
+- Added a fail state in PackageMan to prevent use if it is in a state that will for sure fail. This is a prospective fix for the blocking issue.
+- Added a fail state in ImguiHelper to prevent use in a similar scenario (should not reach from PackageMan, but just in case)
+
+## 4/18/2026
+
+### Bug fixes
+
+- ROF2: Add fix for D3DXEffects::CEffect::FindValue crash when game client goes over 2GB of used memory
+
+
+## 4/16/2026
+
+### Bug fixes
+
+- Fix issue where /mapfilter commands would not take effect until the map plugin was reloaded
+
+## 4/11/2026
+
+- PackageMan bug fixes
+
+## 4/10/2026
+
+### New Plugin Callbacks
+
+Added two new callbacks for plugins - OnLoginFrontendEntered and OnLoginFrontendExited
+both have been added to the mkplugin template and will be generated when mkplugin is
+run.
+
+## 3/22/2026
+
+### Per-Character ImGui Configuration
+
+ImGui configuration can now be saved on a per-character basis. This is now enabled
+by default. The first time a per-character config is loaded, it will be copied from the
+default config if it exists.
+
+Per-character configuration can be toggled from the overlay settings (/mqsettings overlay)
+or via command with /mqoverlay perchar. Changing this option requires a reload of the
+overlay (/mqoverlay reload)
+
+Per-character overlay configuration is saved like: Config/MacroQuest_Overlay/server_character.ini
+
+### Bug fixes
+
+- Fix issue where viewports were not parented to the main viewport. This was preventing them from
+  being brought forward when the game window was focused. (#971)
+
+
+## 3/14/2026
+
+- Fix Me.RangeReady
+
+
+## 3/13/2026
+
+Update for live patch
+
+### Bug Fixes
+
+- Fix crash in ItemDisplayWnd
+
+
+## 3/11/2026
+
+emu: Spell links within the item display window will now open a spell
+display window when clicked.
+
+
+## 3/5/2026
+
+Add support for teek and tormax
+
+
 ## 3/1/2026
 
 Updated to crashpad from the crashpad-backtrace fork we were previously using.
