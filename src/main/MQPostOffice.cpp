@@ -98,47 +98,54 @@ void MQPostOffice::NotifyIsForegroundWindow(bool isForeground)
 	m_pipeClient.SendMessage(MQMessageId::MSG_MAIN_FOCUS_REQUEST, &request, sizeof(request));
 }
 
-void MQPostOffice::RequestActivateWindow(HWND hWnd, bool sendMessage)
+void MQPostOffice::RequestActivateWindow(HWND hWnd, bool isOriginator)
 {
-	// The order in which we activate this matters. This is also duplicated in
-	// the loader's MacroQuest.cpp SetForegroundWindowInternal function so changes
-	// here should be replicated there.
-	const DWORD ourThread = ::GetCurrentThreadId();
-	const DWORD fgThread = ::GetWindowThreadProcessId(::GetForegroundWindow(), nullptr);
-	const bool attached = fgThread && fgThread != ourThread && ::AttachThreadInput(ourThread, fgThread, true);
-	auto detach = wil::scope_exit([&]
-		{
-			if (attached)
-			{
-				::AttachThreadInput(ourThread, fgThread, false);
-			}
-		});
-
-	::BringWindowToTop(hWnd);
-	::SetForegroundWindow(hWnd);
-
-	if (IsIconic(hWnd))
-	{
-		ShowWindow(hWnd, SW_RESTORE);
-	}
-
-	::SetFocus(hWnd);
-
 	if (::GetForegroundWindow() == hWnd)
-		return;
-
-	if (sendMessage && m_pipeClient.IsConnected())
 	{
-		MQMessageFocusRequest request;
-		request.focusMode = MQMessageFocusRequest::FocusMode::WantFocus;
-		request.hWnd = hWnd;
-
-		m_pipeClient.SendMessage(MQMessageId::MSG_MAIN_FOCUS_REQUEST, &request, sizeof(request));
 		return;
 	}
 
-	ShowWindow(hWnd, SW_MINIMIZE);
-	ShowWindow(hWnd, SW_RESTORE);
+	if (!isOriginator)
+	{
+		// The launcher itself is foreground. 
+
+		// We should be the foreground instance. We have privilege, so grant it to the
+		// target and ask it to foreground itself. Us foregrounding it has odd behavior.
+		DWORD targetPid = 0;
+		::GetWindowThreadProcessId(hWnd, &targetPid);
+		if (targetPid != 0)
+		{
+			::AllowSetForegroundWindow(targetPid);
+		}
+
+		if (m_pipeClient.IsConnected())
+		{
+			MQMessageActivateWnd msg;
+			msg.hWnd = hWnd;
+			m_pipeClient.SendMessage(MQMessageId::MSG_MAIN_SELF_FOREGROUND, &msg, sizeof(msg));
+		}
+	}
+	else
+	{
+		if (m_pipeClient.IsConnected())
+		{
+			MQMessageFocusRequest request;
+			request.focusMode = MQMessageFocusRequest::FocusMode::WantFocus;
+			request.hWnd = hWnd;
+
+			m_pipeClient.SendMessage(MQMessageId::MSG_MAIN_FOCUS_REQUEST, &request, sizeof(request));
+		}
+		else
+		{
+			ShowWindow(hWnd, SW_MINIMIZE);
+			ShowWindow(hWnd, SW_RESTORE);
+
+			if (::GetForegroundWindow() != hWnd)
+			{
+				WriteChatf("\ar/foreground: failed to activate the window locally and no pipe is available.");
+			}
+		}
+	}
 }
 
 void MQPostOffice::SendNotification(const std::string& message, const std::string& title)
@@ -246,6 +253,50 @@ void MQPostOffice::OnIncomingMessage(PipeMessagePtr message)
 		}
 		break;
 
+	case MQMessageId::MSG_MAIN_SELF_MIN_RESTORE:
+		if (message->size() >= sizeof(MQMessageActivateWnd))
+		{
+			const HWND hWnd = (HWND)message->get<MQMessageActivateWnd>()->hWnd;
+			if (IsWindow(hWnd) && ::GetForegroundWindow() != hWnd)
+			{
+				ShowWindow(hWnd, SW_MINIMIZE);
+				ShowWindow(hWnd, SW_RESTORE);
+
+				if (::GetForegroundWindow() != hWnd)
+				{
+					WriteChatf("\ar/foreground: failed to activate window after multiple attempts.");
+				}
+			}
+		}
+		break;
+
+	case MQMessageId::MSG_MAIN_SELF_FOREGROUND:
+		if (message->size() >= sizeof(MQMessageActivateWnd))
+		{
+			const HWND hWnd = (HWND)message->get<MQMessageActivateWnd>()->hWnd;
+			if (IsWindow(hWnd) && ::GetForegroundWindow() != hWnd)
+			{
+				if (IsIconic(hWnd))
+				{
+					ShowWindow(hWnd, SW_RESTORE);
+				}
+
+				::SetForegroundWindow(hWnd);
+
+				if (::GetForegroundWindow() != hWnd)
+				{
+					ShowWindow(hWnd, SW_MINIMIZE);
+					ShowWindow(hWnd, SW_RESTORE);
+
+					if (::GetForegroundWindow() != hWnd)
+					{
+						WriteChatf("\ar/foreground: failed to activate window after granting privileges.");
+					}
+				}
+			}
+		}
+		break;
+
 	default:
 		ClientPostOffice::OnIncomingMessage(std::move(message));
 		break;
@@ -276,11 +327,11 @@ void NotifyIsForegroundWindow(bool isForeground)
 	}
 }
 
-void RequestActivateWindow(HWND hWnd, bool sendMessage)
+void RequestActivateWindow(HWND hWnd, bool isOriginator)
 {
 	if (s_postOffice)
 	{
-		s_postOffice->RequestActivateWindow(hWnd, sendMessage);
+		s_postOffice->RequestActivateWindow(hWnd, isOriginator);
 	}
 }
 
