@@ -24,7 +24,7 @@
 	branch = master
 [submodule "plugins/mq2bardswap"]
 	path = plugins/mq2bardswap
-	url = https://github.com/RedGuides/mq2bardswap.git
+	url = https://github.com/RedGuides/MQ2BardSwap.git
 	branch = master
 [submodule "plugins/MQ2DotNet"]
 	path = plugins/MQ2DotNet
