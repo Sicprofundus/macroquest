@@ -26,6 +26,9 @@ PreSetup("MQ2Bzsrch");
 class MQ2BazaarType;
 class MQ2BazaarItemType;
 
+#define HAS_EXPANSION_DROPDOWN IS_CLIENT_DATE(20260819)
+#define HAS_STATMINMAX_INPUT IS_CLIENT_DATE(20260917)
+
 struct
 {
 	const char* name;
