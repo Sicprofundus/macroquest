@@ -26,7 +26,9 @@ PreSetup("MQ2Bzsrch");
 class MQ2BazaarType;
 class MQ2BazaarItemType;
 
+// 08-19-2026 added expansion to dropdown
 #define HAS_EXPANSION_DROPDOWN IS_CLIENT_DATE(20260819)
+// 09-17-2026 added MinStat and MaxStat to input
 #define HAS_STATMINMAX_INPUT IS_CLIENT_DATE(20260917)
 
 struct
@@ -844,8 +846,6 @@ void BzSrchMe(SPAWNINFO* pChar, char* szLine)
 			szLine = GetNextArg(szLine, 1);
 			DoCombo(pBazaarSearchWnd->pItemAugmentCombobox, szArg, "Augment");
 		}
-		// 08-19-2026 added expansion to dropdown
-		// was not added to live eqlib until late september
 #if HAS_EXPANSION_DROPDOWN
 		else if (ci_equals(szArg, "expansion"))
 		{
@@ -854,8 +854,6 @@ void BzSrchMe(SPAWNINFO* pChar, char* szLine)
 			DoCombo(pBazaarSearchWnd->pItemExpansionCombobox, szArg, "Expansion");
 		}
 #endif
-		// 09-17-2026 added MinStat and MaxStat to input
-		// was not added to live eqlib until late september
 #if HAS_STATMINMAX_INPUT
 		else if (ci_equals(szArg, "statvalue"))
 		{
