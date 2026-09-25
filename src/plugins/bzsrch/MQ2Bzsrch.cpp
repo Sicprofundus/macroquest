@@ -880,7 +880,7 @@ void BzSrchMe(SPAWNINFO* pChar, char* szLine)
 
 			if (CEditWnd* pEdit = pBazaarSearchWnd->pMaxStatInput)
 			{
-				pEdit->CSetWindowText(szArg);
+				pEdit->SetWindowText(szArg);
 			}
 		}
 #endif
