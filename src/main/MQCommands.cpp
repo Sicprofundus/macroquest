@@ -743,7 +743,7 @@ void SpellSlotInfo(PlayerClient* pChar, const char* szLine)
 // ***************************************************************************
 // Function:    MemSpell
 // Description: Our '/MemSpell' command
-// Usage:       /MemSpell gem# "spell name"
+// Usage:       /MemSpell gem# "spell name"|spellID
 // ***************************************************************************
 void MemSpell(PlayerClient* pChar, const char* szLine)
 {
@@ -767,15 +767,33 @@ void MemSpell(PlayerClient* pChar, const char* szLine)
 	GetArg(SpellName, szLine, 2);
 
 	EQ_Spell* pSpell = nullptr;
-	for (int index = 0; index < NUM_BOOK_SLOTS; index++)
+
+	// Find by ID
+	if (IsNumber(SpellName))
 	{
-		if (EQ_Spell* pTempSpell = GetSpellByID(pProfile->SpellBook[index]))
+		int SpellID = GetIntFromString(SpellName, 0);
+		for (int nSpell : pProfile->SpellBook)
 		{
-			// exact name match only
-			if (ci_equals(pTempSpell->Name, SpellName))
+			if (nSpell == SpellID)
 			{
-				pSpell = pTempSpell;
+				pSpell = GetSpellByID(SpellID);
 				break;
+			}
+		}
+	}
+	else
+	{
+		// Find by Name
+		for (int index = 0; index < NUM_BOOK_SLOTS; index++)
+		{
+			if (EQ_Spell* pTempSpell = GetSpellByID(pProfile->SpellBook[index]))
+			{
+				// exact name match only
+				if (ci_equals(pTempSpell->Name, SpellName))
+				{
+					pSpell = pTempSpell;
+					break;
+				}
 			}
 		}
 	}
@@ -783,7 +801,7 @@ void MemSpell(PlayerClient* pChar, const char* szLine)
 	if (!pSpell)
 		return; // did not find spell
 
-	if (pSpell->ClassLevel[pChar->GetClass()] > pChar->Level)
+	if (pSpell->GetSpellLevelNeeded(pChar->GetClass()) > pChar->Level)
 		return; // level requirement not met
 
 	int loadout[NUM_SPELL_GEMS];
